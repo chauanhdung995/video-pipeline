@@ -19,8 +19,10 @@ uploads/
 settings.json
 
 # Media lớn (không phù hợp lưu trên git)
-background-music/
-brand-specificities/
+background-music/*
+!background-music/.gitkeep
+brand-specificities/*
+!brand-specificities/.gitkeep
 
 # Cache files
 **/.media-cache.json
