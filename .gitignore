@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Database (chứa API keys và dữ liệu nhạy cảm)
+pipeline.db
+pipeline.db-shm
+pipeline.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Sessions & output videos (dữ liệu tạm thời)
+sessions/
+
+# Uploads (file người dùng tải lên)
+uploads/
+
+# Cấu hình máy local (chứa đường dẫn tuyệt đối)
+settings.json
+
+# Media lớn (không phù hợp lưu trên git)
+background-music/
+sound-effect/
+brand-specificities/
+
+# Cache files
+**/.media-cache.json
+
+# Environment & secrets
+.env
+.env.*
+*.key
+*.pem
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Claude Code internal
+.sixth/
+
+# Logs & temp
+*.log
+tmp/
+temp/

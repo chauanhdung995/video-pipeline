@@ -1,0 +1,22 @@
+{
+  "name": "video-pipeline",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "doctor": "node scripts/doctor.mjs"
+  },
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.9.0",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.2",
+    "puppeteer": "^23.0.0",
+    "ws": "^8.18.0"
+  }
+}

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Pipeline</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="logo">🎬 Pipeline</span>
+    </div>
+
+    <div class="sidebar-scroll">
+      <!-- Settings panel -->
+      <div class="sidebar-settings">
+
+        <div class="setting-group">
+          <div class="field-label">Chủ đề video / JSON kịch bản</div>
+          <textarea id="topic" rows="8" class="json-input" placeholder='Nhập chủ đề video hoặc dán JSON kịch bản vào đây. Nếu nội dung là JSON hợp lệ, hệ thống sẽ tự bỏ qua bước AI tạo script.'></textarea>
+          <div class="setting-hint">
+            Hệ thống tự nhận diện: văn bản thường = chủ đề video, JSON hợp lệ = kịch bản thủ công.
+            <button type="button" class="text-link" onclick="openScriptSample()">Xem JSON mẫu</button>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="field-label">File ảnh / video / GIF <span class="opt-tag">(tuỳ chọn)</span></div>
+          <div id="assetList" class="asset-list-wrap"></div>
+          <label class="btn-change" style="margin-top:4px" title="Thêm ảnh, video hoặc GIF dùng trong HTML">
+            + Thêm file
+            <input type="file" id="assetFile" accept="image/*,video/mp4,video/webm,.gif" multiple hidden>
+          </label>
+        </div>
+
+        <div class="setting-group">
+          <div class="field-label">Tỉ lệ khung hình</div>
+          <div class="setting-row">
+            <select id="outputAspectRatio" class="key-input">
+              <option value="9:16">9:16 — TikTok / Reels</option>
+              <option value="16:9">16:9 — YouTube / Ngang</option>
+              <option value="1:1">1:1 — Vuông</option>
+              <option value="4:5">4:5 — Instagram Portrait</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="field-label">Nhịp video</div>
+          <div class="duration-grid">
+            <div>
+              <div class="setting-subtext">Độ dài video</div>
+              <select id="videoDuration" class="key-input">
+                <option value="60">1 phút</option>
+                <option value="120" selected>2 phút</option>
+                <option value="180">3 phút</option>
+                <option value="240">4 phút</option>
+                <option value="300">5 phút</option>
+              </select>
+            </div>
+            <div>
+              <div class="setting-subtext">Độ dài 1 cảnh</div>
+              <select id="sceneDuration" class="key-input">
+                <option value="5">5 giây</option>
+                <option value="7">7 giây</option>
+                <option value="10">10 giây</option>
+                <option value="12">12 giây</option>
+                <option value="15" selected>15 giây</option>
+                <option value="20">20 giây</option>
+              </select>
+            </div>
+          </div>
+          <div id="durationSummary" class="setting-subtext">Ước tính 9 cảnh, khoảng 17 từ/cảnh</div>
+        </div>
+
+        <div class="setting-group">
+          <div class="field-label">AI Provider</div>
+          <div class="setting-row">
+            <select id="aiProvider" class="key-input">
+              <option value="chato1">Chato1 (gpt-5-3)</option>
+              <option value="openai">OpenAI (gpt-5.3-codex)</option>
+              <option value="gemini">Gemini 2.5 Flash</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-group" id="groupChato1">
+          <div class="field-label">Chato1 API Keys</div>
+          <div class="setting-row">
+            <span class="setting-val" id="chato1Count">0 keys</span>
+            <label class="btn-change" title="Chọn file .txt">
+              Chọn file
+              <input type="file" id="chato1File" accept=".txt" hidden>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-group hidden" id="groupGemini">
+          <div class="field-label">Gemini API Keys</div>
+          <div class="setting-row">
+            <span class="setting-val" id="geminiCount">0 keys</span>
+            <label class="btn-change" title="Chọn file .txt — mỗi dòng một API key">
+              Chọn file
+              <input type="file" id="geminiFile" accept=".txt" hidden>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-group hidden" id="groupOpenAI">
+          <div class="field-label">OpenAI API Keys</div>
+          <div class="setting-row">
+            <span class="setting-val" id="openaiCount">0 keys</span>
+            <label class="btn-change" title="Chọn file .txt — mỗi dòng một API key">
+              Chọn file
+              <input type="file" id="openaiFile" accept=".txt" hidden>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="field-label">Voice API Provider</div>
+          <div class="setting-row">
+            <select id="ttsProvider" class="key-input">
+              <option value="lucylab">LucyLab</option>
+              <option value="vbee">Vbee</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-group" id="groupLucyLab">
+          <div class="field-label">LucyLab API Key</div>
+          <div class="setting-row">
+            <input type="password" id="lucylabKey" class="key-input" placeholder="sk_live_..." autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="setting-group" id="groupLucyVoice">
+          <div class="field-label">Voice ID</div>
+          <div class="setting-row">
+            <input type="text" id="voiceId" class="key-input" placeholder="24oEtXGic7NhDjXzmDbDvt" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="setting-group hidden" id="groupVbeeKey">
+          <div class="field-label">Vbee API Key</div>
+          <div class="setting-row">
+            <input type="password" id="vbeeKey" class="key-input" placeholder="Bearer token..." autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="setting-group hidden" id="groupVbeeAppId">
+          <div class="field-label">Vbee Project ID</div>
+          <div class="setting-row">
+            <input type="text" id="vbeeAppId" class="key-input" placeholder="d37c8195-14a7-4879-b779-d14c0f06829a" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="setting-group hidden" id="groupVbeeVoiceCode">
+          <div class="field-label">Vbee Voice ID</div>
+          <div class="setting-row">
+            <input type="text" id="vbeeVoiceCode" class="key-input" placeholder="hn_female_ngochuyen_full_48k-fhg" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="field-label">Tốc độ giọng</div>
+          <div class="setting-row">
+            <select id="ttsSpeed" class="key-input">
+              <option value="0.8">0.8× — Chậm rõ</option>
+              <option value="0.9">0.9×</option>
+              <option value="1.0" selected>1.0× — Bình thường</option>
+              <option value="1.1">1.1×</option>
+              <option value="1.2">1.2× — Nhanh nhẹ</option>
+              <option value="1.5">1.5× — Nhanh</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="field-label">Phụ đề <span class="opt-tag">(burn-in)</span></div>
+          <div class="setting-row">
+            <select id="enableSubtitles" class="key-input">
+              <option value="1">Có phụ đề (karaoke)</option>
+              <option value="0">Không có phụ đề</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="field-label">Logo</div>
+          <div class="setting-row">
+            <span class="setting-val" id="logoName">Chưa chọn</span>
+            <label class="btn-change" title="Chọn file logo">
+              Đổi logo
+              <input type="file" id="logoFile" accept=".png,.jpg,.jpeg,.webp" hidden>
+            </label>
+          </div>
+          <button id="btnClearLogo" class="btn-change" style="font-size:11px;color:#7f3333;border-color:#3f1d1d;margin-top:2px;display:none">Xóa logo</button>
+        </div>
+
+        <div class="setting-group">
+          <div class="field-label">Phong cách video</div>
+          <div class="setting-row">
+            <select id="styleSelect" class="key-input" style="flex:1"></select>
+            <button id="btnNewStyle" class="btn-change" title="Tạo phong cách mới từ lĩnh vực của bạn" style="flex-shrink:0;margin-left:6px">+ Mới</button>
+          </div>
+          <button id="btnDeleteStyle" class="btn-change" style="font-size:11px;color:#7f3333;border-color:#3f1d1d;margin-top:2px;display:none">Xóa phong cách này</button>
+        </div>
+
+        <button id="btnStart" class="btn-primary btn-start">▶ Bắt đầu</button>
+      </div>
+
+      <!-- Project history -->
+      <div class="sidebar-section-label">
+        Dự án
+        <button class="btn-delete-all" id="btnDeleteAll" title="Xóa tất cả dự án" onclick="deleteAllProjectsUI()">Xóa tất cả</button>
+      </div>
+      <div class="project-list" id="projectList">
+        <div class="empty-list">Chưa có dự án</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main" id="main">
+
+    <!-- Welcome screen -->
+    <div id="viewNew" class="view view-new active">
+      <h1 class="welcome-title">🎬 Video Pipeline</h1>
+      <p class="welcome-sub">Điền thông tin bên trái rồi nhấn <strong>▶ Bắt đầu</strong></p>
+    </div>
+
+    <!-- Project detail -->
+    <div id="viewProject" class="view">
+
+      <!-- Project header -->
+      <div class="proj-header">
+        <div class="proj-meta">
+          <h2 id="projTopic" class="proj-title"></h2>
+          <div class="proj-info">
+            <span id="projStatus" class="badge"></span>
+            <span id="projDate" class="proj-date"></span>
+          </div>
+        </div>
+        <div class="proj-actions">
+          <button id="btnRender"   class="btn-primary"        onclick="startRender()">🎬 Tạo Video</button>
+          <a      id="btnDownload" class="btn-success hidden"  download>⬇ Tải video</a>
+        </div>
+      </div>
+
+      <!-- Current operation status -->
+      <div id="currentOp" class="current-op hidden">
+        <span class="op-spinner">⟳</span>
+        <span id="currentOpText">Đang xử lý...</span>
+      </div>
+
+      <!-- Scene cards grid -->
+      <div id="sceneGrid" class="scene-grid"></div>
+
+      <!-- Final video -->
+      <div id="finalVideo" class="final-video hidden">
+        <h3>✓ Video hoàn thành</h3>
+        <video id="videoOut" controls></video>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ── Scene editor modal ── -->
+<dialog id="editorModal" class="editor-modal">
+  <div class="modal-header">
+    <h3 id="modalTitle">Chỉnh sửa cảnh</h3>
+    <button class="modal-close" onclick="closeEditor()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="editor-split">
+      <div class="editor-left">
+        <label class="field-label" id="editVoiceLabel">Voice (lời dẫn)</label>
+        <textarea id="editVoice" rows="4"></textarea>
+
+        <label class="field-label" id="editVisualLabel">Visual (mô tả AI tạo HTML)</label>
+        <textarea id="editVisual" rows="5"></textarea>
+        <label class="field-label">HTML trực tiếp</label>
+        <textarea id="editHtml" class="code-editor" spellcheck="false"></textarea>
+      </div>
+
+      <div class="editor-right">
+        <label class="field-label">Xem trước cảnh</label>
+        <div class="preview-stage">
+          <div class="preview-wrap preview-wrap-large">
+            <div class="preview-loader" id="previewLoader">⏳ Đang tải...</div>
+            <iframe id="previewFrame" scrolling="no"
+              onload="document.getElementById('previewLoader').style.display='none'; updateAllPreviewScales();"
+            ></iframe>
+          </div>
+        </div>
+
+        <div class="editor-ai-panel">
+          <label class="field-label">Sửa HTML với AI</label>
+          <textarea id="editHtmlPrompt" rows="4" placeholder="Mô tả chỉnh sửa bạn muốn, ví dụ: đổi màu chữ tiêu đề sang đỏ, thêm hiệu ứng particle..."></textarea>
+          <button class="btn-ghost" id="btnEditHtmlAI" onclick="editSceneHtmlAI()" style="width:100%">✏️ Sửa HTML với AI</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-voice"    id="btnRegenVoice" onclick="regenSceneVoice()">🎙 Tạo lại Voice & HTML</button>
+    <button class="btn-primary"  id="btnRegenAI"    onclick="regenSceneAI()">🤖 AI tạo lại HTML</button>
+    <button class="btn-ghost"    id="btnSaveHtml"   onclick="saveSceneHtml()">💾 Lưu HTML</button>
+    <button class="btn-warning"  id="btnRerender"   onclick="rerenderScene()">🎬 Render lại cảnh này</button>
+    <button class="btn-danger"   onclick="closeEditor()">Đóng</button>
+  </div>
+</dialog>
+
+<dialog id="scriptSampleModal" class="editor-modal script-sample-modal" style="max-width:760px">
+  <div class="modal-header">
+    <h3>JSON kịch bản mẫu</h3>
+    <button class="modal-close" onclick="document.getElementById('scriptSampleModal').close()">✕</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size:13px;color:#a1a1aa;line-height:1.6;margin-bottom:12px">
+      JSON gồm <code style="background:#27272a;padding:1px 5px;border-radius:4px;font-size:12px">scenes</code> và <code style="background:#27272a;padding:1px 5px;border-radius:4px;font-size:12px">thumbnail</code>.
+      Mỗi cảnh bắt buộc có <code style="background:#27272a;padding:1px 5px;border-radius:4px;font-size:12px">stt</code>, <code style="background:#27272a;padding:1px 5px;border-radius:4px;font-size:12px">voice</code>, <code style="background:#27272a;padding:1px 5px;border-radius:4px;font-size:12px">visual</code>.
+      Trường <code style="background:#27272a;padding:1px 5px;border-radius:4px;font-size:12px">assets</code> là tuỳ chọn — tên phải khớp chính xác file đã upload ở sidebar.
+      Phần <strong style="color:#e4e4e7">visual</strong> nên mô tả đủ 4 phần: <em>NỀN / YẾU TỐ CHÍNH / THỨ TỰ XUẤT HIỆN / TEXT OVERLAY</em> để AI tạo HTML chính xác hơn. Xem ví dụ bên dưới:
+    </p>
+    <textarea id="scriptSampleContent" class="code-editor" readonly spellcheck="false">{
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Bạn đã bao giờ chuyển tiền mà tự hỏi: sao mình cứ phải phụ thuộc vào ngân hàng? Chờ đợi, trả phí, bị kiểm soát từng giao dịch...",
+      "visual": "NỀN: gradient xanh đen sâu (#0a0a14 → #1a1a2e), lưới hex mờ nhạt phía sau. YẾU TỐ CHÍNH: icon điện thoại lớn giữa màn, trên màn hình hiện spinner loading và popup 'Phí: 15,000đ'. THỨ TỰ XUẤT HIỆN: điện thoại slide lên từ dưới → spinner quay 0.5s → popup 'Phí' trượt vào từ phải → toàn màn hình nhẹ shake. TEXT OVERLAY: dòng chữ 'Tại sao phải chờ?' màu trắng, font lớn, phía trên điện thoại.",
+      "assets": []
+    },
+    {
+      "stt": 2,
+      "voice": "Bitcoin ra đời năm 2009 để giải quyết đúng vấn đề đó — chuyển tiền trực tiếp, không trung gian, không ai kiểm soát.",
+      "visual": "NỀN: đen với các hạt gold dust (#F7B500) trôi nhẹ (tsParticles ambient). YẾU TỐ CHÍNH: logo Bitcoin 3D vàng lớn ở trung tâm; 3 mũi tên sáng tỏa ra 3 hướng (trái, phải, dưới) nối với icon người dùng nhỏ. THỨ TỰ XUẤT HIỆN: logo Bitcoin scale từ 0 → lớn với glow burst → 3 mũi tên vẽ ra đồng thời stagger 150ms. TEXT OVERLAY: 'Peer-to-Peer • Không trung gian' màu vàng nhạt, phía dưới logo.",
+      "assets": ["Logo Bitcoin tròn vàng 3D", "Mascot robot tài chính vui"]
+    },
+    {
+      "stt": 3,
+      "voice": "Chỉ cần ví Bitcoin và kết nối internet — bạn có thể gửi tiền đến bất kỳ đâu trên thế giới trong vài giây, với phí gần như bằng không.",
+      "visual": "NỀN: bản đồ thế giới dạng wireframe xanh mờ trên nền tối. YẾU TỐ CHÍNH: 2 icon điện thoại nhỏ (trái & phải màn), đường giao dịch sáng vẽ nối giữa 2 điện thoại qua bản đồ, badge '~$0.01' nổi lên ở giữa đường. THỨ TỰ XUẤT HIỆN: bản đồ fade in → điện thoại trái hiện → điện thoại phải hiện → đường sáng vẽ từ trái qua phải với hiệu ứng dash → badge phí pop-in tại trung điểm. TEXT OVERLAY: '⚡ Vài giây • Toàn cầu' màu xanh lá #22c55e, phía trên badge.",
+      "assets": []
+    }
+  ],
+  "thumbnail": {
+    "title": "Bitcoin Là Gì?",
+    "prompt": "Thumbnail tĩnh cinematic 9:16. NỀN: gradient xanh đen (#0a0a14 → #1a1a2e) với glow vàng lan tỏa từ trung tâm. CHỦ THỂ CHÍNH: đồng Bitcoin 3D lớn chiếm 40% chiều cao, đặt giữa khung, ánh sáng vàng từ trên xuống tạo chiều sâu. TEXT OVERLAY: dòng 'BITCOIN LÀ GÌ?' chữ hoa, font béo, màu vàng sáng #F7B500 ở 1/3 trên màn hình; dòng nhỏ hơn 'Không cần ngân hàng' màu trắng phía dưới coin. BỐ CỤC: đơn giản, tương phản mạnh, coin nổi bật trên nền tối."
+  }
+}
+
+// ── Ghi chú định dạng ────────────────────────────────────────────────────────
+// "stt"    : số thứ tự cảnh, bắt đầu từ 1, liên tiếp
+// "voice"  : lời dẫn đọc trong cảnh — TTS sẽ đọc chính xác nội dung này
+// "visual" : mô tả bố cục HTML cho AI — càng chi tiết 4 phần (NỀN / YẾU TỐ CHÍNH /
+//            THỨ TỰ XUẤT HIỆN / TEXT OVERLAY) thì HTML sinh ra càng sát ý muốn
+// "assets" : mảng tên mô tả file đã upload ở sidebar (MỤC "File ảnh / video / GIF").
+//            KHÔNG phải đường dẫn file — chỉ là cái tên/nhãn bạn đặt cho file đó.
+//            Ví dụ bạn upload "bitcoin_logo.png" và đặt tên mô tả là
+//            "Logo Bitcoin tròn vàng 3D" → dùng đúng chuỗi đó trong assets.
+//            Có thể truyền nhiều file: ["Tên file A", "Tên file B"].
+//            Hệ thống tự tra cứu đường dẫn thực từ tên — bạn không cần nhập path.
+//            Để trống [] nếu cảnh không dùng file nào.
+// "thumbnail.title"  : tiêu đề ngắn hiển thị trên ảnh thumbnail
+// "thumbnail.prompt" : mô tả chi tiết cho AI tạo ảnh thumbnail tĩnh</textarea>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-primary" onclick="copyScriptSample()">Sao chép mẫu</button>
+    <button class="btn-danger" onclick="document.getElementById('scriptSampleModal').close()">Đóng</button>
+  </div>
+</dialog>
+
+
+<!-- ── Style generation modal ── -->
+<dialog id="styleModal" class="editor-modal style-create-modal" style="max-width:480px">
+  <div class="modal-header">
+    <h3>Tạo phong cách video mới</h3>
+    <button class="modal-close" onclick="document.getElementById('styleModal').close()">✕</button>
+  </div>
+  <div class="modal-body" style="padding:20px">
+    <label class="field-label" style="margin-bottom:8px;display:block">Lĩnh vực / chủ đề của bạn</label>
+    <textarea id="styleDomainInput" class="key-input style-domain-input" style="width:100%;margin-bottom:8px"
+      placeholder="Ví dụ: Sức khoẻ & Thể dục, Ẩm thực, Bất động sản, Giáo dục...&#10;&#10;Bạn cũng có thể mô tả rõ hơn tệp nội dung, đối tượng người xem, cảm giác hình ảnh mong muốn..." spellcheck="false"></textarea>
+    <p style="font-size:12px;color:#71717a;margin-bottom:16px">AI sẽ tạo bảng màu, icon, và mapping visual phù hợp với lĩnh vực của bạn.</p>
+    <div id="styleGenStatus" style="font-size:12px;color:#a1a1aa;min-height:18px"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-primary" id="btnGenStyle" onclick="generateStyle()">✨ Tạo phong cách</button>
+    <button class="btn-danger" onclick="document.getElementById('styleModal').close()">Hủy</button>
+  </div>
+</dialog>
+
+<script src="script.js"></script>
+</body>
+</html>
