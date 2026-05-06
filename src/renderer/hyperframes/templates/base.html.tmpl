@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="video-pipeline-html" content="hyperframes-template-system-v1">
+  <meta name="viewport" content="width={{WIDTH}}, height={{HEIGHT}}">
+  <title>{{TITLE}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@500;600;700;800&family=Anton&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="stage"
+       data-vp-html-version="hyperframes-template-system-v1"
+       data-composition-id="{{COMPOSITION_ID}}"
+       data-width="{{WIDTH}}"
+       data-height="{{HEIGHT}}"
+       data-start="0"
+       data-duration="{{TOTAL_DURATION}}">
+
+    {{SHELL}}
+
+    {{AUDIO}}
+
+    {{SCENES}}
+  </div>
+  <script src="animations.js"></script>
+</body>
+</html>

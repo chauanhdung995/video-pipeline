@@ -1,0 +1,47 @@
+{
+  "template": "key-number",
+  "description": "Mẫu làm nổi bật một con số hoặc sự kiện nổi bật trong breaking-news.",
+  "templateData": {
+    "kicker": "CON SỐ NỔI BẬT",
+    "value": "72%",
+    "label": "mức tăng trong 2 giờ",
+    "context": "Tốc độ thay đổi cao hơn đáng kể so với cùng khung giờ hôm qua.",
+    "footnote": "Số liệu demo, thay bằng nguồn chính thức khi dựng tin thật.",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#05070d",
+        "#101827",
+        "#dc2626",
+        "#22d3ee"
+      ],
+      "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+      "opacity": 0.16
+    },
+    "blockRefs": [
+      "data-chart",
+      "apple-money-count",
+      "shimmer-sweep"
+    ],
+    "appearanceOrder": [
+      "value",
+      "label",
+      "context"
+    ],
+    "timingPhrases": {
+      "value": "bảy mươi hai phần trăm",
+      "label": "trong vòng hai giờ",
+      "context": "so với cùng khung giờ"
+    },
+    "sfx": {
+      "value": "bảy mươi hai phần trăm",
+      "context": "so với cùng khung giờ"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "objective": "explainer",
+  "template": "explainer-process-steps",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Một giao dịch đi qua 4 bước. Đầu tiên là tạo yêu cầu, rồi vào hàng đợi. Tiếp theo là xác nhận, cuối cùng ghi kết quả. Nhìn theo luồng này, mỗi độ trễ đều có vị trí rõ ràng.",
+      "ttsVoice": "Một giao dịch đi qua 4 bước. Đầu tiên là tạo yêu cầu, rồi vào hàng đợi. Tiếp theo là xác nhận, cuối cùng ghi kết quả. Nhìn theo luồng này, mỗi độ trễ đều có vị trí rõ ràng.",
+      "template": "explainer-process-steps",
+      "templateData": {
+        "kicker": "QUY TRÌNH",
+        "title": "Một giao dịch đi qua 4 bước",
+        "steps": [
+          { "label": "01", "text": "Tạo yêu cầu", "detail": "Người dùng ký giao dịch." },
+          { "label": "02", "text": "Vào hàng đợi", "detail": "Mạng xếp thứ tự xử lý." },
+          { "label": "03", "text": "Xác nhận", "detail": "Node kiểm tra điều kiện." },
+          { "label": "04", "text": "Ghi kết quả", "detail": "Trạng thái được cập nhật." }
+        ],
+        "result": "Nhìn theo luồng này, mỗi độ trễ đều có vị trí rõ ràng.",
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["flowchart", "grid-pixelate-wipe", "shimmer-sweep"],
+        "appearanceOrder": ["title", "step1", "step2", "step3", "step4", "result"],
+        "timingPhrases": {
+          "title": "4 bước",
+          "step1": "tạo yêu cầu",
+          "step2": "hàng đợi",
+          "step3": "xác nhận",
+          "step4": "ghi kết quả",
+          "result": "vị trí rõ ràng"
+        },
+        "sfx": {
+          "title": "4 bước",
+          "step1": "tạo yêu cầu",
+          "step3": "xác nhận",
+          "result": "vị trí rõ ràng"
+        }
+      },
+      "visual": "LAYOUT: explainer process steps. BACKGROUND: ink navy with grid. MAIN ELEMENTS: kicker, title, vertical step list, result pill. APPEARANCE ORDER: title -> step1 -> step2 -> step3 -> step4 -> result. TEXT OVERLAY: \"Một giao dịch đi qua 4 bước\"."
+    }
+  ]
+}

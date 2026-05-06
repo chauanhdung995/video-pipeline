@@ -1,0 +1,79 @@
+<!--
+Template: payment-network-halo
+Description: Payment network halo/orbit around a central object.
+
+This file documents the HTML contract for this template folder.
+Runtime rendering is currently implemented by:
+src/renderer/hyperframesTemplateSystem.js
+
+Required templateData sample:
+{
+  "title": "Mạng thanh toán",
+  "cardLabel": "PAYMENT",
+  "statMain": "24/7",
+  "statSub": "kết nối tức thì",
+  "note": "Mạng lưới bao quanh giao dịch",
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#111827",
+      "#2563eb"
+    ],
+    "pattern": "subtle data grid",
+    "opacity": 0.18
+  },
+  "elements": {
+    "card": {
+      "x": 540,
+      "y": 840,
+      "timingPhrase": "giao dịch"
+    },
+    "wallet": {
+      "x": 540,
+      "y": 910,
+      "timingPhrase": "ví"
+    },
+    "halo": {
+      "x": 540,
+      "y": 840,
+      "timingPhrase": "mạng lưới"
+    },
+    "icons": [
+      {
+        "label": "Node",
+        "x": 265,
+        "y": 510
+      },
+      {
+        "label": "User",
+        "x": 540,
+        "y": 455
+      },
+      {
+        "label": "Merchant",
+        "x": 815,
+        "y": 510
+      }
+    ]
+  },
+  "appearanceOrder": [
+    "card",
+    "halo",
+    "icons",
+    "stat"
+  ],
+  "timingPhrases": {
+    "halo": "mạng lưới"
+  },
+  "sfx": {
+    "card": "giao dịch",
+    "halo": "mạng lưới",
+    "nodes": "merchant",
+    "stat": 1.4
+  }
+}
+-->
+<section class="scene-template-payment-network-halo" data-template="payment-network-halo">
+  <!-- Replace this file with a real template implementation when this template becomes folder-rendered. -->
+  <pre data-template-data>{{templateData}}</pre>
+</section>

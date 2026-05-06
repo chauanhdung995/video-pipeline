@@ -1,0 +1,16 @@
+<!--
+Template: image-background-hero
+Description: Full-screen Serper image background with Ken Burns motion and concise title overlay.
+
+Runtime rendering is implemented by:
+src/renderer/hyperframesTemplateSystem.js
+
+Image flow:
+1. Scene-planning prompt returns keyword-image for this template.
+2. Pipeline calls Serper, downloads usable images, and stores local session paths.
+3. TemplateData prompt receives this sample plus downloadedImages.
+4. OpenAI chooses one local image path and fills templateData.background.src and templateData.image.src.
+-->
+<section class="scene-template-image-background-hero" data-template="image-background-hero">
+  <pre data-template-data>{{templateData}}</pre>
+</section>

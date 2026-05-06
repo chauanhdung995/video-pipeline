@@ -1,0 +1,60 @@
+{
+  "template": "onchain-payment",
+  "description": "On-chain payment flow centered on card/wallet/network.",
+  "templateData": {
+    "title": "Thanh toán on-chain",
+    "cardLabel": "VISA CRYPTO",
+    "statMain": "90%",
+    "statSub": "on-chain",
+    "note": "Luồng thanh toán minh bạch",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "elements": {
+      "card": {
+        "x": 540,
+        "y": 840,
+        "timingPhrase": "thẻ"
+      },
+      "wallet": {
+        "x": 540,
+        "y": 910,
+        "timingPhrase": "ví"
+      },
+      "halo": {
+        "x": 540,
+        "y": 840,
+        "timingPhrase": "on-chain"
+      },
+      "icons": []
+    },
+    "appearanceOrder": [
+      "wallet",
+      "card",
+      "halo",
+      "stat"
+    ],
+    "timingPhrases": {
+      "halo": "on-chain",
+      "stat": "chín mươi phần trăm"
+    },
+    "sfx": {
+      "wallet": "ví",
+      "card": "thẻ",
+      "halo": "on-chain",
+      "stat": "chín mươi phần trăm"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

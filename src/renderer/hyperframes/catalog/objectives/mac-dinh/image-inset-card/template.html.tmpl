@@ -1,0 +1,16 @@
+<!--
+Template: image-inset-card
+Description: Serper image as an inset media panel with adjacent news/explainer text.
+
+Runtime rendering is implemented by:
+src/renderer/hyperframesTemplateSystem.js
+
+Image flow:
+1. Scene-planning prompt returns keyword-image for this template.
+2. Pipeline calls Serper, downloads usable images, and stores local session paths.
+3. TemplateData prompt receives this sample plus downloadedImages.
+4. OpenAI chooses one local image path and fills templateData.image.src.
+-->
+<section class="scene-template-image-inset-card" data-template="image-inset-card">
+  <pre data-template-data>{{templateData}}</pre>
+</section>

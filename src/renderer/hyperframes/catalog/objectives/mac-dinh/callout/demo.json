@@ -1,0 +1,80 @@
+{
+  "objective": "mac-dinh",
+  "template": "callout",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Điểm chính là đừng chỉ nhìn bề mặt, hãy nhìn vào động lực phía sau.",
+      "ttsVoice": "Điểm chính là đừng chỉ nhìn bề mặt, hãy nhìn vào động lực phía sau.",
+      "template": "callout",
+      "templateData": {
+        "tag": "Điểm chính",
+        "statement": "Một thông điệp ngắn cần nhấn mạnh",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "callout"
+        ],
+        "timingPhrases": {
+          "statement": "cụm thông điệp chính"
+        },
+        "sfx": {
+          "alert": "cụm thông điệp chính"
+        }
+      },
+      "visual": "LAYOUT: callout. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: callout. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: callout. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: callout. TEXT OVERLAY: demo.",
+        "layout": "callout",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "callout."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "callout.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "callout.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

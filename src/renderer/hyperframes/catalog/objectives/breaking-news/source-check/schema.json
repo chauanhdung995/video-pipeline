@@ -1,0 +1,56 @@
+{
+  "template": "source-check",
+  "description": "Mẫu kiểm chứng nguồn tin: tách thông tin đã xác nhận và thông tin chưa kiểm chứng.",
+  "templateData": {
+    "kicker": "KIỂM CHỨNG NGUỒN",
+    "title": "Đâu là thông tin đã chắc chắn?",
+    "confirmed": [
+      "Thông cáo chính thức đã được phát hành",
+      "Thời điểm áp dụng đã được nêu rõ"
+    ],
+    "unverified": [
+      "Quy mô ảnh hưởng thực tế vẫn đang được cập nhật",
+      "Một số hình ảnh lan truyền chưa xác định được thời gian"
+    ],
+    "note": "Không dùng chi tiết chưa kiểm chứng làm kết luận chính.",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#05070d",
+        "#101827",
+        "#dc2626",
+        "#22d3ee"
+      ],
+      "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+      "opacity": 0.16
+    },
+    "blockRefs": [
+      "macos-notification",
+      "reddit-post",
+      "shimmer-sweep"
+    ],
+    "appearanceOrder": [
+      "title",
+      "confirmed",
+      "unverified",
+      "note"
+    ],
+    "timingPhrases": {
+      "title": "đã xác nhận",
+      "confirmed": "thông tin đã xác nhận",
+      "unverified": "cần kiểm chứng",
+      "note": "không dùng"
+    },
+    "sfx": {
+      "title": 0.08,
+      "confirmed": "đã xác nhận",
+      "unverified": "cần kiểm chứng"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

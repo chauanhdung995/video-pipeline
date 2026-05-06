@@ -1,0 +1,44 @@
+{
+  "template": "comparison",
+  "description": "Two-side comparison with left and right cards.",
+  "templateData": {
+    "left": {
+      "label": "Bên A",
+      "value": "điểm yếu",
+      "color": "cyan"
+    },
+    "right": {
+      "label": "Bên B",
+      "value": "điểm mạnh",
+      "color": "purple",
+      "winner": true
+    },
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "left",
+      "right"
+    ],
+    "timingPhrases": {
+      "left": "bên A",
+      "right": "bên B"
+    },
+    "sfx": {
+      "left": "bên A",
+      "right": "bên B"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

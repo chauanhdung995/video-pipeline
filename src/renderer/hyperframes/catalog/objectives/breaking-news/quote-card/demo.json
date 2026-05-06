@@ -1,0 +1,50 @@
+{
+  "objective": "breaking-news",
+  "template": "quote-card",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Một đại diện cơ quan chức năng nói rằng ưu tiên hiện tại là bảo đảm an toàn cho người dân và công bố thông tin đã kiểm chứng.",
+      "ttsVoice": "Một đại diện cơ quan chức năng nói rằng ưu tiên hiện tại là bảo đảm an toàn cho người dân và công bố thông tin đã kiểm chứng.",
+      "template": "quote-card",
+      "templateData": {
+        "kicker": "TRÍCH DẪN",
+        "quote": "Ưu tiên hiện tại là bảo đảm an toàn cho người dân và công bố thông tin đã kiểm chứng.",
+        "speaker": "Đại diện cơ quan chức năng",
+        "role": "Phát biểu trong họp báo chiều nay",
+        "source": "Họp báo lúc 16:00",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#05070d",
+            "#101827",
+            "#dc2626",
+            "#22d3ee"
+          ],
+          "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+          "opacity": 0.16
+        },
+        "blockRefs": [
+          "x-post",
+          "reddit-post",
+          "shimmer-sweep"
+        ],
+        "appearanceOrder": [
+          "quote",
+          "speaker",
+          "source"
+        ],
+        "timingPhrases": {
+          "quote": "ưu tiên hiện tại",
+          "speaker": "đại diện cơ quan chức năng",
+          "source": "họp báo"
+        },
+        "sfx": {
+          "quote": "ưu tiên hiện tại",
+          "speaker": "đại diện cơ quan chức năng"
+        }
+      },
+      "visual": "LAYOUT: large quote card with speaker attribution. MAIN ELEMENTS: quote, speaker, role, source timestamp. BACKGROUND: restrained breaking-news red accents."
+    }
+  ]
+}

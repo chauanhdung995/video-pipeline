@@ -1,0 +1,50 @@
+{
+  "objective": "explainer",
+  "template": "explainer-analogy-bridge",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Hãy nghĩ blockchain như sổ cái chung. Blockchain là nhiều máy cùng giữ một bản ghi. Ví dụ quen thuộc hơn là một sổ cái chung, nơi mọi người cùng nhìn thấy cùng một lịch sử. Hai thứ khác nhau, nhưng cùng một logic. Ẩn dụ đúng giúp người xem nhớ nguyên lý thay vì học thuộc định nghĩa.",
+      "ttsVoice": "Hãy nghĩ blockchain như sổ cái chung. Blockchain là nhiều máy cùng giữ một bản ghi. Ví dụ quen thuộc hơn là một sổ cái chung, nơi mọi người cùng nhìn thấy cùng một lịch sử. Hai thứ khác nhau, nhưng cùng một logic. Ẩn dụ đúng giúp người xem nhớ nguyên lý thay vì học thuộc định nghĩa.",
+      "template": "explainer-analogy-bridge",
+      "templateData": {
+        "title": "Hãy nghĩ blockchain như sổ cái chung",
+        "abstract": {
+          "label": "Khái niệm",
+          "title": "Blockchain",
+          "detail": "Nhiều máy cùng giữ một bản ghi."
+        },
+        "analogy": {
+          "label": "Ví dụ quen thuộc",
+          "title": "Sổ cái chung",
+          "detail": "Mọi người cùng nhìn thấy cùng một lịch sử."
+        },
+        "bridge": "cùng một logic",
+        "takeaway": "Ẩn dụ đúng giúp người xem nhớ nguyên lý thay vì học thuộc định nghĩa.",
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["flowchart", "ui-3d-reveal", "shimmer-sweep"],
+        "appearanceOrder": ["title", "abstract", "bridge", "analogy", "takeaway"],
+        "timingPhrases": {
+          "title": "sổ cái chung",
+          "abstract": "blockchain",
+          "bridge": "cùng một logic",
+          "analogy": "lịch sử",
+          "takeaway": "nhớ nguyên lý"
+        },
+        "sfx": {
+          "abstract": "blockchain",
+          "bridge": "cùng một logic",
+          "analogy": "lịch sử",
+          "takeaway": "nhớ nguyên lý"
+        }
+      },
+      "visual": "LAYOUT: explainer analogy bridge. BACKGROUND: ink navy with cyan grid. MAIN ELEMENTS: abstract card, bridge connector, analogy card, takeaway. APPEARANCE ORDER: title -> abstract -> bridge -> analogy -> takeaway. TEXT OVERLAY: \"Blockchain\"; \"Sổ cái chung\"."
+    }
+  ]
+}

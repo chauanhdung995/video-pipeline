@@ -1,0 +1,54 @@
+{
+  "objective": "explainer",
+  "template": "explainer-image-zoom",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Hãy phóng to phần quan trọng. Vùng được khoanh cho thấy dấu hiệu giải thích toàn bộ cơ chế phía sau.",
+      "ttsVoice": "Hãy phóng to phần quan trọng. Vùng được khoanh cho thấy dấu hiệu giải thích toàn bộ cơ chế phía sau.",
+      "template": "explainer-image-zoom",
+      "templateData": {
+        "kicker": "CHI TIẾT",
+        "title": "Phóng to phần quan trọng",
+        "detailTitle": "Điểm cần chú ý",
+        "detail": "Vùng được khoanh cho thấy dấu hiệu giải thích toàn bộ cơ chế phía sau.",
+        "zoomLabel": "zoom",
+        "lens": { "x": 58, "y": 42, "size": 250 },
+        "imageSearch": {
+          "q": "\"interface detail\" chart dashboard closeup -logo -icon",
+          "intent": "Find a detailed image, chart, interface screenshot, or object photo that benefits from a zoom callout.",
+          "orientation": "any",
+          "prefer": ["detail", "screenshot", "chart"],
+          "avoid": ["logo", "icon", "stock"]
+        },
+        "image": {
+          "title": "Explainer demo image",
+          "src": "file:///Users/ngokhanh/Downloads/video-pipeline-main%202/src/renderer/hyperframes/catalog/objectives/explainer/_prototypes/explainer-image-demo-photo.png",
+          "width": 1024,
+          "height": 1792,
+          "alt": "Abstract educational technology scene"
+        },
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["image-inset-card", "ui-3d-reveal", "shimmer-sweep"],
+        "appearanceOrder": ["image", "title", "lens", "detail"],
+        "timingPhrases": {
+          "title": "phóng to",
+          "zoomLabel": "vùng được khoanh",
+          "detail": "cơ chế phía sau"
+        },
+        "sfx": {
+          "image": 0.08,
+          "lens": "vùng được khoanh",
+          "detail": "cơ chế phía sau"
+        }
+      },
+      "visual": "LAYOUT: explainer image zoom. BACKGROUND: navy grid. MAIN ELEMENTS: large image, zoom lens, detail card. APPEARANCE ORDER: image -> title -> lens -> detail. TEXT OVERLAY: \"Phóng to phần quan trọng\"."
+    }
+  ]
+}

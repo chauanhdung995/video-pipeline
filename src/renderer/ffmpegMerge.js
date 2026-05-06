@@ -2,12 +2,13 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 
 const AR_CONFIGS = {
   '9:16': { w: 1080, h: 1920 },
-  '16:9': { w: 1920, h: 1080 },
-  '1:1':  { w: 1080, h: 1080 },
-  '4:5':  { w: 1080, h: 1350 },
 };
 
 // ─── SRT / ASS helpers ───────────────────────────────────────────────────────
@@ -41,8 +42,8 @@ function msToASS(ms) {
  * Mỗi từ là một Dialogue event riêng, chỉ active trong khoảng thời gian nó được đọc.
  * Timing từng từ phân bổ tỷ lệ theo số ký tự.
  */
-export function buildKaraokeASS(scenes, xfadeDur = 0.5, outputAspectRatio = '9:16') {
-  const { w: playResX, h: playResY } = AR_CONFIGS[outputAspectRatio] || AR_CONFIGS['9:16'];
+export function buildKaraokeASS(scenes, xfadeDur = 0.5) {
+  const { w: playResX, h: playResY } = AR_CONFIGS['9:16'];
   // ASS màu: AABBGGRR — #F7B500 → &H0000B5F7 | trắng → &H00FFFFFF
   const YELLOW = '&H0000B5F7&';
   const WHITE  = '&H00FFFFFF&';
@@ -182,6 +183,66 @@ function probeDuration(file) {
   });
 }
 
+export function hasAudioStream(file) {
+  return new Promise(resolve => {
+    const p = spawn('ffprobe', [
+      '-v', 'error',
+      '-select_streams', 'a',
+      '-show_entries', 'stream=index',
+      '-of', 'csv=p=0',
+      file,
+    ]);
+    let out = '';
+    p.stdout.on('data', d => out += d);
+    p.on('close', c => resolve(c === 0 && out.trim().length > 0));
+    p.on('error', () => resolve(false));
+  });
+}
+
+function extractSceneSfxClips(htmlPath) {
+  if (!htmlPath || !fs.existsSync(htmlPath)) return [];
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  return Array.from(html.matchAll(/<audio\b[^>]*data-sfx-template=[^>]*>/gi))
+    .map((match, index) => {
+      const tag = match[0];
+      const src = readHtmlAttr(tag, 'src');
+      const file = resolveSfxSource(src, htmlPath);
+      const start = Math.max(0, Number(readHtmlAttr(tag, 'data-start')) || 0);
+      const volumeRaw = Number(readHtmlAttr(tag, 'data-volume'));
+      const volume = Number.isFinite(volumeRaw) ? Math.max(0, Math.min(1, volumeRaw)) : 0.28;
+      if (!file || !fs.existsSync(file)) return null;
+      return { index, file, start, volume };
+    })
+    .filter(Boolean);
+}
+
+function readHtmlAttr(tag, name) {
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`\\b${escaped}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i');
+  const match = String(tag || '').match(re);
+  return decodeHtmlAttr(match?.[1] ?? match?.[2] ?? match?.[3] ?? '');
+}
+
+function decodeHtmlAttr(value) {
+  return String(value || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
+}
+
+function resolveSfxSource(src, htmlPath) {
+  const raw = String(src || '').trim();
+  if (!raw) return '';
+  if (raw.startsWith('/assets/sfx/')) return path.join(PROJECT_ROOT, decodeURI(raw.slice(1)));
+  if (raw.startsWith('assets/sfx/')) return path.join(PROJECT_ROOT, decodeURI(raw));
+  if (raw.startsWith('file://')) {
+    try { return fileURLToPath(raw); } catch { return ''; }
+  }
+  if (/^https?:\/\//i.test(raw)) return '';
+  return path.resolve(path.dirname(htmlPath), decodeURI(raw));
+}
+
 function resolveExistingMedia(fileName, dir) {
   if (!fileName || !dir) return null;
   const mediaPath = path.join(dir, fileName);
@@ -189,35 +250,17 @@ function resolveExistingMedia(fileName, dir) {
 }
 
 /**
- * Mix nhạc nền + sound effects vào video đã có voice audio.
- *
- * @param {string} inputVideo   - video đã ghép giọng đọc (final_nosub.mp4)
- * @param {string} outputVideo  - đầu ra
- * @param {{
- *   background_music: string|null,
- *   background_volume: number,
- *   sound_effects: Array<{file:string, time:number, volume:number}>,
- *   musicDir: string,
- *   sfxDir: string,
- * }} plan
+ * Mix nhạc nền vào video đã có voice audio.
+ * Scene-level SFX live as <audio data-sfx-...> cues in each HyperFrames
+ * HTML file. HyperFrames should render them directly; mergeSceneAudio only
+ * falls back to reading those cues if the rendered video has no audio stream.
  */
-export async function mixMusicAndSFX(inputVideo, outputVideo, plan) {
-  const { background_music, background_volume = 0.12, sound_effects = [], musicDir, sfxDir } = plan;
+export async function mixBackgroundMusic(inputVideo, outputVideo, plan) {
+  const { background_music, background_volume = 0.12, musicDir } = plan;
   const bgmPath = resolveExistingMedia(background_music, musicDir);
-  const hasBGM = !!bgmPath;
-  const validSFX = sound_effects
-    .map((sfx, index) => {
-      const sfxPath = resolveExistingMedia(sfx?.file, sfxDir);
-      if (!sfxPath) return null;
-      const time = Number(sfx.time);
-      const volume = Number.isFinite(Number(sfx.volume)) ? Number(sfx.volume) : 1;
-      if (!Number.isFinite(time) || time < 0) return null;
-      return { ...sfx, file: sfx.file, path: sfxPath, time, volume, index };
-    })
-    .filter(Boolean);
-  const hasSFX = validSFX.length > 0;
+  const hasBackgroundMusic = !!bgmPath;
 
-  if (!hasBGM && !hasSFX) {
+  if (!hasBackgroundMusic) {
     fs.copyFileSync(inputVideo, outputVideo);
     return;
   }
@@ -235,36 +278,14 @@ export async function mixMusicAndSFX(inputVideo, outputVideo, plan) {
 
   const ffArgs = ['-i', inputVideo];
   const filterParts = [];
-  let audioInputIdx = 1;
-  let mixInputs = '[0:a]';
 
   // Nhạc nền: loop + fade out
-  if (hasBGM) {
-    ffArgs.push('-stream_loop', '-1', '-i', bgmPath);
-    filterParts.push(
-      `[${audioInputIdx}:a]atrim=0:${totalDuration.toFixed(3)},` +
-      `volume=${background_volume},` +
-      `afade=t=out:st=${fadeOutStart.toFixed(3)}:d=3[bgm]`
-    );
-    mixInputs += '[bgm]';
-    audioInputIdx++;
-  }
-
-  // Sound effects: delay đến đúng timestamp
-  for (let i = 0; i < validSFX.length; i++) {
-    const sfx = validSFX[i];
-    const delayMs = Math.round(sfx.time * 1000);
-    ffArgs.push('-i', sfx.path);
-    filterParts.push(
-      `[${audioInputIdx}:a]adelay=${delayMs}|${delayMs},volume=${sfx.volume}[sfx${i}]`
-    );
-    mixInputs += `[sfx${i}]`;
-    audioInputIdx++;
-  }
-
-  const totalMixInputs = 1 + (hasBGM ? 1 : 0) + validSFX.length;
+  ffArgs.push('-stream_loop', '-1', '-i', bgmPath);
   filterParts.push(
-    `${mixInputs}amix=inputs=${totalMixInputs}:duration=first:normalize=0[aout]`
+    `[1:a]atrim=0:${totalDuration.toFixed(3)},` +
+    `volume=${background_volume},` +
+    `afade=t=out:st=${fadeOutStart.toFixed(3)}:d=3[bgm]`,
+    `[0:a][bgm]amix=inputs=2:duration=first:normalize=0[aout]`
   );
 
   ffArgs.push(
@@ -298,7 +319,40 @@ export async function burnLogoOnly(inputVideo, logoFile, outputVideo) {
   }
 }
 
-export async function mergeSceneAudio(silentVideo, audioFile, outputFile) {
+export async function mergeSceneAudio(silentVideo, audioFile, outputFile, htmlPath = '') {
+  const hasSceneAudio = await hasAudioStream(silentVideo);
+  const sfxClips = hasSceneAudio ? [] : extractSceneSfxClips(htmlPath);
+
+  if (hasSceneAudio || sfxClips.length) {
+    const inputs = ['-i', silentVideo, '-i', audioFile];
+    sfxClips.forEach(clip => inputs.push('-i', clip.file));
+
+    const filters = [];
+    const mixLabels = [];
+    if (hasSceneAudio) {
+      filters.push('[0:a]volume=1[a0]');
+      mixLabels.push('[a0]');
+    }
+    filters.push('[1:a]volume=1[voice]');
+    mixLabels.push('[voice]');
+    sfxClips.forEach((clip, idx) => {
+      const inputIndex = idx + 2;
+      const delayMs = Math.max(0, Math.round(clip.start * 1000));
+      filters.push(`[${inputIndex}:a]adelay=${delayMs}:all=1,volume=${clip.volume.toFixed(3)}[sfx${idx}]`);
+      mixLabels.push(`[sfx${idx}]`);
+    });
+    filters.push(`${mixLabels.join('')}amix=inputs=${mixLabels.length}:duration=longest:normalize=0[aout]`);
+
+    await runFF([
+      ...inputs,
+      '-filter_complex', filters.join(';'),
+      '-map', '0:v', '-map', '[aout]',
+      '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
+      '-shortest', outputFile
+    ]);
+    return;
+  }
+
   await runFF([
     '-i', silentVideo, '-i', audioFile,
     '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',

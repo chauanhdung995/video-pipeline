@@ -1,0 +1,59 @@
+{
+  "objective": "explainer",
+  "template": "explainer-image-annotations",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Có ba điểm cần chú ý trong ảnh này: tín hiệu đầu vào, điểm nghẽn, và kết quả cuối. Các chấm giúp khán giả biết phải nhìn vào đâu trước.",
+      "ttsVoice": "Có ba điểm cần chú ý trong ảnh này: tín hiệu đầu vào, điểm nghẽn, và kết quả cuối. Các chấm giúp khán giả biết phải nhìn vào đâu trước.",
+      "template": "explainer-image-annotations",
+      "templateData": {
+        "kicker": "NHÌN VÀO ẢNH",
+        "title": "Ba điểm cần chú ý",
+        "imageSearch": {
+          "q": "\"technology workflow\" screenshot diagram annotation -logo -icon",
+          "intent": "Find a readable image, chart, screenshot, or diagram that can support annotation pins.",
+          "orientation": "any",
+          "prefer": ["diagram", "screenshot", "photo"],
+          "avoid": ["logo", "icon", "clipart"]
+        },
+        "image": {
+          "title": "Explainer demo image",
+          "src": "file:///Users/ngokhanh/Downloads/video-pipeline-main%202/src/renderer/hyperframes/catalog/objectives/explainer/_prototypes/explainer-image-demo-photo.png",
+          "width": 1024,
+          "height": 1792,
+          "alt": "Abstract educational technology scene"
+        },
+        "annotations": [
+          { "label": "1", "text": "Tín hiệu đầu vào", "x": 24, "y": 30 },
+          { "label": "2", "text": "Điểm nghẽn", "x": 68, "y": 45 },
+          { "label": "3", "text": "Kết quả cuối", "x": 42, "y": 68 }
+        ],
+        "caption": "Các chấm giúp khán giả biết phải nhìn vào đâu trước.",
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["image-inset-card", "macos-notification", "shimmer-sweep"],
+        "appearanceOrder": ["image", "title", "annotation1", "annotation2", "annotation3", "caption"],
+        "timingPhrases": {
+          "title": "ba điểm",
+          "annotation1": "đầu vào",
+          "annotation2": "điểm nghẽn",
+          "annotation3": "kết quả cuối",
+          "caption": "nhìn vào đâu"
+        },
+        "sfx": {
+          "image": 0.08,
+          "pin1": "đầu vào",
+          "pin2": "điểm nghẽn",
+          "caption": "nhìn vào đâu"
+        }
+      },
+      "visual": "LAYOUT: explainer image annotations. BACKGROUND: navy grid. MAIN ELEMENTS: large image, title, numbered annotation pins, caption. APPEARANCE ORDER: image -> title -> pins -> caption. TEXT OVERLAY: \"Ba điểm cần chú ý\"."
+    }
+  ]
+}

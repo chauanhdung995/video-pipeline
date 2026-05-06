@@ -1,0 +1,41 @@
+{
+  "objective": "explainer",
+  "template": "explainer-concept-hook",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Vì sao phí giao dịch tăng? Một ý phức tạp sẽ dễ hiểu hơn khi tách thành từng lớp: tắc nghẽn mạng. Khi quá nhiều giao dịch cùng tranh chỗ, người trả phí cao hơn sẽ được xử lý trước.",
+      "ttsVoice": "Vì sao phí giao dịch tăng? Một ý phức tạp sẽ dễ hiểu hơn khi tách thành từng lớp: tắc nghẽn mạng. Khi quá nhiều giao dịch cùng tranh chỗ, người trả phí cao hơn sẽ được xử lý trước.",
+      "template": "explainer-concept-hook",
+      "templateData": {
+        "kicker": "GIẢI THÍCH NHANH",
+        "title": "Vì sao phí giao dịch tăng?",
+        "subtitle": "Một ý phức tạp sẽ dễ hiểu hơn khi tách thành từng lớp.",
+        "coreTerm": "Tắc nghẽn mạng",
+        "definition": "Khi quá nhiều giao dịch cùng tranh chỗ, người trả phí cao hơn sẽ được xử lý trước.",
+        "icon": "spark",
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["kinetic-type", "shimmer-sweep", "grain-overlay"],
+        "appearanceOrder": ["title", "subtitle", "coreTerm", "definition"],
+        "timingPhrases": {
+          "title": "phí giao dịch tăng",
+          "subtitle": "tách thành từng lớp",
+          "coreTerm": "tắc nghẽn mạng",
+          "definition": "trả phí cao hơn"
+        },
+        "sfx": {
+          "intro": 0.08,
+          "term": "tắc nghẽn mạng",
+          "definition": "trả phí cao hơn"
+        }
+      },
+      "visual": "LAYOUT: explainer concept hook. BACKGROUND: deep ink navy, cyan grid, amber accent. MAIN ELEMENTS: title, subtitle, core term capsule, definition panel. APPEARANCE ORDER: title -> subtitle -> coreTerm -> definition. TEXT OVERLAY: \"Vì sao phí giao dịch tăng?\"; \"Tắc nghẽn mạng\"."
+    }
+  ]
+}

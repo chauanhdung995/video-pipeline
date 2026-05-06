@@ -1,0 +1,39 @@
+{
+  "template": "explainer-data-proof",
+  "description": "Explainer proof scene with a metric, simple chart, and one sentence of interpretation.",
+  "templateData": {
+    "kicker": "BẰNG CHỨNG",
+    "title": "Số liệu nói gì?",
+    "metric": "3x",
+    "metricLabel": "lưu lượng sau 6 tháng",
+    "insight": "Khi lưu lượng tăng nhanh hơn năng lực xử lý, phí bắt đầu phản ứng theo cấp số nhân.",
+    "labels": ["T1", "T2", "T3", "T4", "T5"],
+    "dataPoints": [18, 24, 35, 55, 72],
+    "background": {
+      "type": "gradient",
+      "colors": ["#08111f", "#15243a"],
+      "accent": "#22d3ee",
+      "mint": "#34d399",
+      "opacity": 0.16
+    },
+    "blockRefs": ["data-chart", "nyt-graph", "shimmer-sweep"],
+    "appearanceOrder": ["title", "chart", "metric", "insight"],
+    "timingPhrases": {
+      "title": "số liệu",
+      "chart": "lưu lượng",
+      "metric": "3x",
+      "insight": "cấp số nhân"
+    },
+    "sfx": {
+      "chart": "lưu lượng",
+      "metric": "3x",
+      "insight": "cấp số nhân"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

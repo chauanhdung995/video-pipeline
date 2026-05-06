@@ -1,0 +1,58 @@
+{
+  "objective": "explainer",
+  "template": "explainer-image-recap",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Nhớ hình, nhớ ý chính. Ảnh tạo ngữ cảnh, callout chỉ điểm chính, và phần tóm tắt giữ lại trí nhớ. Đây là cảnh phù hợp để chốt lại một lời giải thích.",
+      "ttsVoice": "Nhớ hình, nhớ ý chính. Ảnh tạo ngữ cảnh, callout chỉ điểm chính, và phần tóm tắt giữ lại trí nhớ. Đây là cảnh phù hợp để chốt lại một lời giải thích.",
+      "template": "explainer-image-recap",
+      "templateData": {
+        "kicker": "TÓM TẮT BẰNG HÌNH",
+        "title": "Nhớ hình, nhớ ý chính",
+        "imageSearch": {
+          "q": "\"technology summary\" diagram photo concept -logo -icon",
+          "intent": "Find a recap image or diagram that reinforces the final takeaways of an explainer.",
+          "orientation": "any",
+          "prefer": ["diagram", "summary", "photo"],
+          "avoid": ["logo", "icon", "stock"]
+        },
+        "image": {
+          "title": "Explainer demo image",
+          "src": "file:///Users/ngokhanh/Downloads/video-pipeline-main%202/src/renderer/hyperframes/catalog/objectives/explainer/_prototypes/explainer-image-demo-photo.png",
+          "width": 1024,
+          "height": 1792,
+          "alt": "Abstract educational technology scene"
+        },
+        "takeaways": [
+          { "label": "1", "text": "Ảnh tạo ngữ cảnh", "detail": "" },
+          { "label": "2", "text": "Callout chỉ điểm chính", "detail": "" },
+          { "label": "3", "text": "Tóm tắt giữ lại trí nhớ", "detail": "" }
+        ],
+        "cta": "Nhớ hình, nhớ ý chính",
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["logo-outro", "image-inset-card", "yt-lower-third"],
+        "appearanceOrder": ["image", "title", "item1", "item2", "item3", "cta"],
+        "timingPhrases": {
+          "title": "nhớ ý chính",
+          "item1": "tạo ngữ cảnh",
+          "item2": "điểm chính",
+          "item3": "trí nhớ",
+          "cta": "nhớ hình"
+        },
+        "sfx": {
+          "image": 0.08,
+          "item1": "tạo ngữ cảnh",
+          "cta": "nhớ hình"
+        }
+      },
+      "visual": "LAYOUT: explainer image recap. BACKGROUND: navy grid. MAIN ELEMENTS: image, title, three takeaway chips, CTA. APPEARANCE ORDER: image -> title -> items -> cta. TEXT OVERLAY: \"Nhớ hình, nhớ ý chính\"."
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "template": "case-study-concept-map",
+  "description": "Dark 9:16 HyperFrames case-study template for explaining a difficult concept with a visual hierarchy, three explanation points, and a final takeaway.",
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  },
+  "templateData": {
+    "eyebrow": "CASE STUDY / GIẢI THÍCH NHANH",
+    "title": "Vì sao AI thường “ảo giác”?",
+    "subtitle": "Một khái niệm khó được bóc tách bằng mô hình trực quan: dự đoán xác suất, thiếu ngữ cảnh và kiểm chứng đầu ra.",
+    "conceptLabel": "KHÁI NIỆM TRUNG TÂM",
+    "centerText": "AI không “biết” như con người — nó dự đoán chuỗi từ có khả năng đúng nhất.",
+    "metric": {
+      "label": "Mức rủi ro hiểu sai",
+      "value": "73%",
+      "note": "tăng khi dữ liệu đầu vào mơ hồ"
+    },
+    "steps": [
+      {
+        "kicker": "01",
+        "title": "Dự đoán, không ghi nhớ",
+        "body": "Mô hình chọn từ tiếp theo dựa trên mẫu đã học, nên câu trả lời có thể nghe hợp lý dù sai."
+      },
+      {
+        "kicker": "02",
+        "title": "Ngữ cảnh bị thiếu",
+        "body": "Nếu câu hỏi thiếu dữ kiện, AI sẽ tự lấp khoảng trống bằng xác suất thay vì hỏi lại."
+      },
+      {
+        "kicker": "03",
+        "title": "Cần lớp kiểm chứng",
+        "body": "Nguồn tham chiếu, dữ liệu nội bộ và phản biện giúp biến câu trả lời thành thông tin đáng tin."
+      }
+    ],
+    "takeaway": {
+      "label": "TAKEAWAY",
+      "text": "Đừng hỏi AI như một cuốn bách khoa. Hãy dùng nó như một người phác thảo — rồi kiểm chứng bằng nguồn thật."
+    },
+    "background": {
+      "accent": "#7c5cff",
+      "accent2": "#00e5ff",
+      "surface": "#080a12",
+      "gridOpacity": "0.18"
+    },
+    "appearanceOrder": [
+      "eyebrow",
+      "title",
+      "subtitle",
+      "center visual",
+      "metric",
+      "step 1",
+      "step 2",
+      "step 3",
+      "takeaway"
+    ],
+    "timingPhrases": [
+      "0.0s title reveal",
+      "1.2s concept visual settles",
+      "2.0s three points appear in sequence",
+      "5.8s takeaway highlight",
+      "7.5s ambient hold"
+    ],
+    "blockRefs": [
+      "grain-overlay",
+      "shimmer-sweep",
+      "flowchart"
+    ],
+    "sfxRefs": [
+      "assets/sfx/transition/whoosh-soft.mp3",
+      "assets/sfx/emphasis/tick.mp3",
+      "assets/sfx/emphasis/chime.mp3"
+    ]
+  }
+}

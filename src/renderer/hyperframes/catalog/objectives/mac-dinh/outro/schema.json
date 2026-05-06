@@ -1,0 +1,36 @@
+{
+  "template": "outro",
+  "description": "Closing summary / CTA.",
+  "templateData": {
+    "ctaTop": "Theo dõi để xem tiếp",
+    "channelName": "Video Pipeline",
+    "source": "Tóm tắt nội dung chính",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "cta",
+      "channel",
+      "source"
+    ],
+    "timingPhrases": {
+      "channelName": "theo dõi"
+    },
+    "sfx": {
+      "cta": 0.12,
+      "finish": "theo dõi"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

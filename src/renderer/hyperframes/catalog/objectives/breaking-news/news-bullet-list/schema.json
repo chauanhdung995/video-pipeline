@@ -1,0 +1,62 @@
+{
+  "template": "news-bullet-list",
+  "description": "Mẫu list danh sách cho tin nóng, giới hạn tối đa 5 mục với thứ tự xuất hiện rõ ràng.",
+  "templateData": {
+    "kicker": "5 ĐIỂM CHÍNH",
+    "title": "Những gì cần biết lúc này",
+    "items": [
+      "Thông báo chính thức đã được phát đi",
+      "Ba khu vực nằm trong diện theo dõi",
+      "Quy định mới áp dụng từ tối nay",
+      "Phản ứng ban đầu xuất hiện trên thị trường",
+      "Sẽ cập nhật thêm trong ngày mai"
+    ],
+    "source": "Tổng hợp từ thông cáo và dữ liệu công khai",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#05070d",
+        "#101827",
+        "#dc2626",
+        "#22d3ee"
+      ],
+      "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+      "opacity": 0.16
+    },
+    "blockRefs": [
+      "macos-notification",
+      "grid-pixelate-wipe",
+      "shimmer-sweep"
+    ],
+    "appearanceOrder": [
+      "title",
+      "item1",
+      "item2",
+      "item3",
+      "item4",
+      "item5"
+    ],
+    "timingPhrases": {
+      "title": "năm điểm chính",
+      "item1": "thông báo chính thức",
+      "item2": "khu vực",
+      "item3": "thời điểm áp dụng",
+      "item4": "phản ứng ban đầu",
+      "item5": "bước tiếp theo"
+    },
+    "sfx": {
+      "card": 0.08,
+      "item1": "thông báo chính thức",
+      "item2": "khu vực",
+      "item3": "thời điểm áp dụng",
+      "item4": "phản ứng ban đầu",
+      "item5": "bước tiếp theo"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "template": "explainer-image-recap",
+  "description": "Image-based recap scene that uses one visual plus takeaway chips to close or reinforce an explanation.",
+  "templateData": {
+    "kicker": "TÓM TẮT BẰNG HÌNH",
+    "title": "Nhớ hình, nhớ ý chính",
+    "imageSearch": {
+      "q": "\"technology summary\" diagram photo concept -logo -icon",
+      "intent": "Find a recap image or diagram that reinforces the final takeaways of an explainer.",
+      "orientation": "any",
+      "prefer": ["diagram", "summary", "photo"],
+      "avoid": ["logo", "icon", "stock"]
+    },
+    "image": { "title": "", "src": "", "width": 0, "height": 0, "alt": "" },
+    "takeaways": [
+      { "label": "1", "text": "Ảnh tạo ngữ cảnh", "detail": "" },
+      { "label": "2", "text": "Callout chỉ điểm chính", "detail": "" },
+      { "label": "3", "text": "Tóm tắt giữ lại trí nhớ", "detail": "" }
+    ],
+    "cta": "Nhớ hình, nhớ ý chính",
+    "background": {
+      "type": "gradient",
+      "colors": ["#08111f", "#15243a"],
+      "accent": "#22d3ee",
+      "mint": "#34d399",
+      "opacity": 0.16
+    },
+    "blockRefs": ["logo-outro", "image-inset-card", "yt-lower-third"],
+    "appearanceOrder": ["image", "title", "item1", "item2", "item3", "cta"],
+    "timingPhrases": {
+      "title": "nhớ ý chính",
+      "item1": "tạo ngữ cảnh",
+      "item2": "điểm chính",
+      "item3": "trí nhớ",
+      "cta": "nhớ hình"
+    },
+    "sfx": {
+      "image": 0.08,
+      "item1": "tạo ngữ cảnh",
+      "cta": "nhớ hình"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

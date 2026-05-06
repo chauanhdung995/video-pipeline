@@ -1,0 +1,48 @@
+<!--
+Template: comparison
+Description: Two-side comparison with left and right cards.
+
+This file documents the HTML contract for this template folder.
+Runtime rendering is currently implemented by:
+src/renderer/hyperframesTemplateSystem.js
+
+Required templateData sample:
+{
+  "left": {
+    "label": "Bên A",
+    "value": "điểm yếu",
+    "color": "cyan"
+  },
+  "right": {
+    "label": "Bên B",
+    "value": "điểm mạnh",
+    "color": "purple",
+    "winner": true
+  },
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#111827",
+      "#2563eb"
+    ],
+    "pattern": "subtle data grid",
+    "opacity": 0.18
+  },
+  "appearanceOrder": [
+    "left",
+    "right"
+  ],
+  "timingPhrases": {
+    "left": "bên A",
+    "right": "bên B"
+  },
+  "sfx": {
+    "left": "bên A",
+    "right": "bên B"
+  }
+}
+-->
+<section class="scene-template-comparison" data-template="comparison">
+  <!-- Replace this file with a real template implementation when this template becomes folder-rendered. -->
+  <pre data-template-data>{{templateData}}</pre>
+</section>

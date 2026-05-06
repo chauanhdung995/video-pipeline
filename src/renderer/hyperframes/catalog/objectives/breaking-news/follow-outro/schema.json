@@ -1,0 +1,48 @@
+{
+  "template": "follow-outro",
+  "description": "Mẫu kết thúc tin nóng, kêu gọi follow kênh để nhận cập nhật tiếp theo.",
+  "templateData": {
+    "kicker": "CẬP NHẬT LIÊN TỤC",
+    "channel": "Bản Tin Nhanh",
+    "cta": "Theo dõi để nhận cập nhật mới nhất",
+    "summary": "Tin mới sẽ được bổ sung khi nguồn chính thức xác nhận.",
+    "handle": "@bantinnhanh",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#05070d",
+        "#101827",
+        "#dc2626",
+        "#22d3ee"
+      ],
+      "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+      "opacity": 0.16
+    },
+    "blockRefs": [
+      "yt-lower-third",
+      "tiktok-follow",
+      "logo-outro"
+    ],
+    "appearanceOrder": [
+      "cta",
+      "subscribe",
+      "summary"
+    ],
+    "timingPhrases": {
+      "cta": "theo dõi kênh",
+      "subscribe": "không bỏ lỡ",
+      "summary": "thông tin mới"
+    },
+    "sfx": {
+      "cta": "theo dõi kênh",
+      "subscribe": "không bỏ lỡ",
+      "finish": "bản tin tiếp theo"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

@@ -7,6 +7,7 @@ Usage: python3 whisper_generate.py <audio_path> <srt_output_path>
 import sys
 import os
 import subprocess
+import json
 
 def format_time(seconds: float) -> str:
     h = int(seconds // 3600)
@@ -49,6 +50,18 @@ def generate_srt(audio_path: str, srt_path: str):
         if seg.words:
             all_words.extend(seg.words)
 
+    word_json_path = os.path.splitext(srt_path)[0] + '.words.json'
+    with open(word_json_path, 'w', encoding='utf-8') as f:
+        json.dump([
+            {
+                'word': w.word.strip(),
+                'start': round(float(w.start), 3),
+                'end': round(float(w.end), 3),
+            }
+            for w in all_words
+            if w.word and w.word.strip()
+        ], f, ensure_ascii=False, indent=2)
+
     # Chia thành các dòng SRT ngắn: tối đa MAX_WORDS_PER_LINE từ hoặc MAX_SECS_PER_LINE giây
     lines = []
     idx = 1
@@ -84,6 +97,7 @@ def generate_srt(audio_path: str, srt_path: str):
         f.write('\n'.join(lines))
 
     print(f'[Whisper] Đã tạo {idx - 1} dòng phụ đề → {srt_path}', flush=True)
+    print(f'[Whisper] Đã tạo word timing → {word_json_path}', flush=True)
 
 def main():
     if len(sys.argv) < 3:

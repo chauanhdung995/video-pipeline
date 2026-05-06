@@ -1,0 +1,41 @@
+<!--
+Template: stat-pill
+Description: Metric badge / pill that pops in as the voice reads the number.
+
+This file documents the HTML contract for this template folder.
+Runtime rendering is currently implemented by:
+src/renderer/hyperframesTemplateSystem.js
+
+Required templateData sample:
+{
+  "value": "+500%",
+  "label": "tăng trưởng chi tiêu",
+  "context": "~600M USD/tháng",
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#111827",
+      "#2563eb"
+    ],
+    "pattern": "subtle data grid",
+    "opacity": 0.18
+  },
+  "appearanceOrder": [
+    "value",
+    "label",
+    "context"
+  ],
+  "timingPhrases": {
+    "value": "năm trăm phần trăm",
+    "context": "sáu trăm triệu"
+  },
+  "sfx": {
+    "value": "năm trăm phần trăm",
+    "context": "sáu trăm triệu"
+  }
+}
+-->
+<section class="scene-template-stat-pill" data-template="stat-pill">
+  <!-- Replace this file with a real template implementation when this template becomes folder-rendered. -->
+  <pre data-template-data>{{templateData}}</pre>
+</section>

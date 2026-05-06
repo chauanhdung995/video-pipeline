@@ -1,0 +1,64 @@
+{
+  "objective": "breaking-news",
+  "template": "data-snapshot-chart",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Dữ liệu cho thấy số ca ghi nhận tăng từ 18 lên 54 rồi đạt 72 trong ba mốc cập nhật gần nhất.",
+      "ttsVoice": "Dữ liệu cho thấy số ca ghi nhận tăng từ 18 lên 54 rồi đạt 72 trong ba mốc cập nhật gần nhất.",
+      "template": "data-snapshot-chart",
+      "templateData": {
+        "kicker": "DỮ LIỆU NHANH",
+        "title": "Ba mốc cập nhật gần nhất",
+        "metric": "+72%",
+        "metricLabel": "so với đầu ngày",
+        "points": [
+          18,
+          31,
+          54,
+          66,
+          72
+        ],
+        "labels": [
+          "08:00",
+          "10:00",
+          "12:00",
+          "14:00",
+          "16:00"
+        ],
+        "source": "Nguồn: bảng cập nhật demo",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#05070d",
+            "#101827",
+            "#dc2626",
+            "#22d3ee"
+          ],
+          "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+          "opacity": 0.16
+        },
+        "blockRefs": [
+          "data-chart",
+          "nyt-graph",
+          "shimmer-sweep"
+        ],
+        "appearanceOrder": [
+          "chart",
+          "metric",
+          "source"
+        ],
+        "timingPhrases": {
+          "chart": "dữ liệu cho thấy",
+          "metric": "bảy mươi hai",
+          "source": "mốc cập nhật"
+        },
+        "sfx": {
+          "chart": "dữ liệu cho thấy",
+          "metric": "bảy mươi hai"
+        }
+      },
+      "visual": "LAYOUT: data snapshot chart. MAIN ELEMENTS: title, metric, line chart, labels, source. BACKGROUND: modern data newsroom surface."
+    }
+  ]
+}

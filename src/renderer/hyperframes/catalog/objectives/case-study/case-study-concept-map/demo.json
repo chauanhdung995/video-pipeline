@@ -1,0 +1,80 @@
+{
+  "objective": "case-study",
+  "template": "case-study-concept-map",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "calm, analytical Vietnamese explainer voice with a confident modern tone",
+      "ttsVoice": "vi-VN-HoaiMyNeural",
+      "template": "case-study-concept-map",
+      "templateData": {
+        "eyebrow": "CASE STUDY / 60 GIÂY",
+        "title": "Vì sao AI tạo ra câu trả lời sai?",
+        "subtitle": "Giải mã hiện tượng “ảo giác AI” bằng một sơ đồ đơn giản: xác suất, ngữ cảnh và kiểm chứng.",
+        "conceptLabel": "CỐT LÕI VẤN ĐỀ",
+        "centerText": "AI tạo câu trả lời bằng dự đoán xác suất — không phải bằng trải nghiệm thật.",
+        "metric": {
+          "label": "Khi prompt mơ hồ",
+          "value": "3×",
+          "note": "nguy cơ câu trả lời bị suy diễn tăng mạnh"
+        },
+        "steps": [
+          {
+            "kicker": "01",
+            "title": "Nó tối ưu sự hợp lý",
+            "body": "AI ưu tiên câu chữ trôi chảy và có vẻ đúng, nhưng không tự động biết đâu là sự thật."
+          },
+          {
+            "kicker": "02",
+            "title": "Nó cần ngữ cảnh rõ",
+            "body": "Thiếu mục tiêu, nguồn dữ liệu hoặc giới hạn, mô hình sẽ đoán phần còn thiếu."
+          },
+          {
+            "kicker": "03",
+            "title": "Nó cần kiểm chứng ngoài",
+            "body": "Kết hợp trích dẫn, tài liệu gốc và chuyên gia giúp giảm sai lệch đáng kể."
+          }
+        ],
+        "takeaway": {
+          "label": "KẾT LUẬN NHANH",
+          "text": "AI mạnh nhất khi được giao vai trò trợ lý phân tích — không phải nguồn chân lý duy nhất."
+        },
+        "background": {
+          "accent": "#7c5cff",
+          "accent2": "#00e5ff",
+          "surface": "#080a12",
+          "gridOpacity": "0.18"
+        },
+        "appearanceOrder": [
+          "eyebrow",
+          "title",
+          "subtitle",
+          "center visual",
+          "metric",
+          "step 1",
+          "step 2",
+          "step 3",
+          "takeaway"
+        ],
+        "timingPhrases": [
+          "0.0s title reveal",
+          "1.2s concept visual settles",
+          "2.0s three points appear in sequence",
+          "5.8s takeaway highlight",
+          "7.5s ambient hold"
+        ],
+        "blockRefs": [
+          "grain-overlay",
+          "shimmer-sweep",
+          "flowchart"
+        ],
+        "sfxRefs": [
+          "assets/sfx/transition/whoosh-soft.mp3",
+          "assets/sfx/emphasis/tick.mp3",
+          "assets/sfx/emphasis/chime.mp3"
+        ]
+      },
+      "visual": "Dark polished HyperFrames portrait layout with a large Vietnamese headline, glowing central concept node, three connected explanation cards, small risk metric, grid/noise background, and a final highlighted takeaway panel."
+    }
+  ]
+}

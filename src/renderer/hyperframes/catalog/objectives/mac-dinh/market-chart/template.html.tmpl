@@ -1,0 +1,50 @@
+<!--
+Template: market-chart
+Description: Market/chart/dashboard visual with a metric and trend.
+
+This file documents the HTML contract for this template folder.
+Runtime rendering is currently implemented by:
+src/renderer/hyperframesTemplateSystem.js
+
+Required templateData sample:
+{
+  "title": "Xu hướng thị trường",
+  "value": "90%",
+  "context": "thị phần hoặc biến động chính",
+  "chartType": "line",
+  "trend": "up",
+  "dataPoints": [
+    20,
+    34,
+    28,
+    52,
+    71,
+    90
+  ],
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#111827",
+      "#2563eb"
+    ],
+    "pattern": "subtle data grid",
+    "opacity": 0.18
+  },
+  "appearanceOrder": [
+    "title",
+    "chart",
+    "value"
+  ],
+  "timingPhrases": {
+    "value": "chín mươi phần trăm"
+  },
+  "sfx": {
+    "chart": "xu hướng",
+    "value": "chín mươi phần trăm"
+  }
+}
+-->
+<section class="scene-template-market-chart" data-template="market-chart">
+  <!-- Replace this file with a real template implementation when this template becomes folder-rendered. -->
+  <pre data-template-data>{{templateData}}</pre>
+</section>

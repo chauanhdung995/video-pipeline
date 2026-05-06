@@ -1,0 +1,59 @@
+{
+  "objective": "explainer",
+  "template": "explainer-image-side-panel",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Ảnh bên trái, ý bên phải. Ảnh đang cho thấy gì? Trước hết là dấu hiệu chính, sau đó là cơ chế liên quan, cuối cùng là kết luận cần nhớ.",
+      "ttsVoice": "Ảnh bên trái, ý bên phải. Ảnh đang cho thấy gì? Trước hết là dấu hiệu chính, sau đó là cơ chế liên quan, cuối cùng là kết luận cần nhớ.",
+      "template": "explainer-image-side-panel",
+      "templateData": {
+        "kicker": "GIẢI THÍCH",
+        "title": "Ảnh bên trái, ý bên phải",
+        "panelTitle": "Ảnh đang cho thấy gì?",
+        "body": "Tách phần nhìn và phần giải thích để người xem vừa quan sát vừa nắm nguyên nhân.",
+        "bullets": [
+          { "label": "1", "text": "Dấu hiệu chính", "detail": "" },
+          { "label": "2", "text": "Cơ chế liên quan", "detail": "" },
+          { "label": "3", "text": "Kết luận cần nhớ", "detail": "" }
+        ],
+        "imageSearch": {
+          "q": "\"technology explanation\" photo screenshot chart -logo -icon",
+          "intent": "Find a strong explanatory photo, chart, or screenshot that works beside a text panel.",
+          "orientation": "any",
+          "prefer": ["photo", "screenshot", "chart"],
+          "avoid": ["logo", "icon", "clipart"]
+        },
+        "image": {
+          "title": "Explainer demo image",
+          "src": "file:///Users/ngokhanh/Downloads/video-pipeline-main%202/src/renderer/hyperframes/catalog/objectives/explainer/_prototypes/explainer-image-demo-photo.png",
+          "width": 1024,
+          "height": 1792,
+          "alt": "Abstract educational technology scene"
+        },
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["image-inset-card", "app-showcase", "shimmer-sweep"],
+        "appearanceOrder": ["image", "title", "panel", "bullet1", "bullet2", "bullet3"],
+        "timingPhrases": {
+          "title": "ảnh bên trái",
+          "panelTitle": "cho thấy gì",
+          "bullet1": "dấu hiệu chính",
+          "bullet2": "cơ chế liên quan",
+          "bullet3": "kết luận"
+        },
+        "sfx": {
+          "image": 0.08,
+          "panel": "cho thấy gì",
+          "bullet1": "dấu hiệu chính"
+        }
+      },
+      "visual": "LAYOUT: explainer image side panel. BACKGROUND: navy grid. MAIN ELEMENTS: image, title, side explanation panel, bullets. APPEARANCE ORDER: image -> title -> panel -> bullets. TEXT OVERLAY: \"Ảnh bên trái, ý bên phải\"."
+    }
+  ]
+}

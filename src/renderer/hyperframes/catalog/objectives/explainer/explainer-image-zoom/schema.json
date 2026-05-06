@@ -1,0 +1,45 @@
+{
+  "template": "explainer-image-zoom",
+  "description": "Image explainer scene that highlights one detailed area with a zoom lens and explanatory note.",
+  "templateData": {
+    "kicker": "CHI TIẾT",
+    "title": "Phóng to phần quan trọng",
+    "detailTitle": "Điểm cần chú ý",
+    "detail": "Vùng được khoanh cho thấy dấu hiệu giải thích toàn bộ cơ chế phía sau.",
+    "zoomLabel": "zoom",
+    "lens": { "x": 58, "y": 42, "size": 250 },
+    "imageSearch": {
+      "q": "\"interface detail\" chart dashboard closeup -logo -icon",
+      "intent": "Find a detailed image, chart, interface screenshot, or object photo that benefits from a zoom callout.",
+      "orientation": "any",
+      "prefer": ["detail", "screenshot", "chart"],
+      "avoid": ["logo", "icon", "stock"]
+    },
+    "image": { "title": "", "src": "", "width": 0, "height": 0, "alt": "" },
+    "background": {
+      "type": "gradient",
+      "colors": ["#08111f", "#15243a"],
+      "accent": "#22d3ee",
+      "mint": "#34d399",
+      "opacity": 0.16
+    },
+    "blockRefs": ["image-inset-card", "ui-3d-reveal", "shimmer-sweep"],
+    "appearanceOrder": ["image", "title", "lens", "detail"],
+    "timingPhrases": {
+      "title": "phóng to",
+      "zoomLabel": "vùng được khoanh",
+      "detail": "cơ chế phía sau"
+    },
+    "sfx": {
+      "image": 0.08,
+      "lens": "vùng được khoanh",
+      "detail": "cơ chế phía sau"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

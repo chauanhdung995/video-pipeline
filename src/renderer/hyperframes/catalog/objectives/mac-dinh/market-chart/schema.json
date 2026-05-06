@@ -1,0 +1,46 @@
+{
+  "template": "market-chart",
+  "description": "Market/chart/dashboard visual with a metric and trend.",
+  "templateData": {
+    "title": "Xu hướng thị trường",
+    "value": "90%",
+    "context": "thị phần hoặc biến động chính",
+    "chartType": "line",
+    "trend": "up",
+    "dataPoints": [
+      20,
+      34,
+      28,
+      52,
+      71,
+      90
+    ],
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "title",
+      "chart",
+      "value"
+    ],
+    "timingPhrases": {
+      "value": "chín mươi phần trăm"
+    },
+    "sfx": {
+      "chart": "xu hướng",
+      "value": "chín mươi phần trăm"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

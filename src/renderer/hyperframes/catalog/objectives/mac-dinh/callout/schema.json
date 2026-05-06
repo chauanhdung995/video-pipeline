@@ -1,0 +1,32 @@
+{
+  "template": "callout",
+  "description": "Warning, key takeaway, or important note.",
+  "templateData": {
+    "tag": "Điểm chính",
+    "statement": "Một thông điệp ngắn cần nhấn mạnh",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "callout"
+    ],
+    "timingPhrases": {
+      "statement": "cụm thông điệp chính"
+    },
+    "sfx": {
+      "alert": "cụm thông điệp chính"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

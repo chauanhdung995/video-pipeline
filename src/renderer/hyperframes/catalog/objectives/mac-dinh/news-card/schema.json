@@ -1,0 +1,35 @@
+{
+  "template": "news-card",
+  "description": "News-style card with kicker, title, and body.",
+  "templateData": {
+    "kicker": "Tin chính",
+    "title": "Tiêu đề ngắn",
+    "body": "Một câu giải thích hoặc trích dẫn ngắn",
+    "source": "Nguồn/brand nếu có",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "card"
+    ],
+    "timingPhrases": {
+      "title": "tiêu đề chính"
+    },
+    "sfx": {
+      "card": "tiêu đề chính",
+      "alert": 0.35
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

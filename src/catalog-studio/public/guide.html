@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hướng dẫn dùng Catalog Studio</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --panel: #0f0f14;
+      --panel-2: #141419;
+      --panel-3: #1a1a1f;
+      --line: #1f1f27;
+      --line-strong: #27272a;
+      --text: #e4e4e7;
+      --muted: #a1a1aa;
+      --subtle: #71717a;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --amber: #d97706;
+      --red: #ef4444;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body { line-height: 1.58; }
+
+    ::selection { background: #1e3a8a; color: #fff; }
+
+    a { color: #93c5fd; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    code,
+    pre {
+      font-family: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    .guide-shell {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .guide-nav {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 20px 16px;
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .brand {
+      margin-bottom: 22px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      color: var(--subtle);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .brand h1 {
+      margin: 4px 0 0;
+      font-size: 21px;
+      line-height: 1.1;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 4px;
+    }
+
+    .nav-list a {
+      display: block;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .nav-list a:hover {
+      background: var(--panel-3);
+      border-color: var(--line-strong);
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .guide-main {
+      width: min(1060px, 100%);
+      padding: 32px;
+    }
+
+    .hero {
+      margin-bottom: 18px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 40px);
+      line-height: 1.05;
+    }
+
+    .hero p {
+      max-width: 780px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 26px;
+    }
+
+    .quick-card,
+    section {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+    }
+
+    .quick-card {
+      padding: 14px;
+    }
+
+    .quick-card strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .quick-card span {
+      color: var(--subtle);
+      font-size: 13px;
+    }
+
+    section {
+      margin: 16px 0;
+      padding: 22px;
+    }
+
+    h3 {
+      margin: 0 0 12px;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    h4 {
+      margin: 18px 0 8px;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    p {
+      margin: 10px 0;
+      color: var(--muted);
+    }
+
+    ul,
+    ol {
+      margin: 10px 0;
+      padding-left: 22px;
+      color: var(--muted);
+    }
+
+    li { margin: 6px 0; }
+
+    .note,
+    .warning,
+    .success {
+      margin: 14px 0;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    .note {
+      border: 1px solid #3b82f644;
+      background: #1e3a8a1a;
+      color: #bfdbfe;
+    }
+
+    .warning {
+      border: 1px solid #d9770644;
+      background: #78350f24;
+      color: #fcd34d;
+    }
+
+    .success {
+      border: 1px solid #22c55e44;
+      background: #14532d33;
+      color: #bbf7d0;
+    }
+
+    .file-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    .file-table th,
+    .file-table td {
+      border: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .file-table th {
+      color: #fff;
+      background: var(--panel-3);
+      font-weight: 700;
+    }
+
+    pre {
+      overflow: auto;
+      margin: 12px 0;
+      padding: 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: var(--bg);
+      color: #dbeafe;
+      font-size: .92em;
+    }
+
+    pre code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    .checklist {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .checklist li {
+      position: relative;
+      padding-left: 28px;
+    }
+
+    .checklist li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: .45em;
+      width: 14px;
+      height: 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 4px;
+      background: var(--bg);
+    }
+
+    .top-link {
+      display: inline-flex;
+      margin-top: 10px;
+      color: var(--subtle);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    @media (max-width: 980px) {
+      .guide-shell { grid-template-columns: 1fr; }
+      .guide-nav {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .nav-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .guide-main { padding: 20px; }
+      .quick-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .nav-list { grid-template-columns: 1fr; }
+      section,
+      .hero { padding: 16px; }
+      .guide-main { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="guide-shell">
+    <aside class="guide-nav">
+      <div class="brand">
+        <div class="eyebrow">HyperFrames Catalog Studio</div>
+        <h1>Hướng dẫn sử dụng</h1>
+      </div>
+      <nav class="nav-list" aria-label="Mục lục">
+        <a href="#overview">1. Studio dùng để làm gì?</a>
+        <a href="#concepts">2. Ba khái niệm cần hiểu</a>
+        <a href="#ai-create">3. Tạo nhanh bằng AI</a>
+        <a href="#ai-edit">4. Sửa template bằng AI</a>
+        <a href="#workflow">5. Tạo template thủ công</a>
+        <a href="#files">6. Ba file cần sửa</a>
+        <a href="#placeholders">7. Placeholder trong HTML</a>
+        <a href="#render">8. Render mode</a>
+        <a href="#blocks">9. Block library</a>
+        <a href="#sfx">10. SFX library</a>
+        <a href="#image-template">11. Template có hình ảnh</a>
+        <a href="#debug">12. Kiểm tra lỗi</a>
+        <a href="#checklist">13. Checklist hoàn thiện</a>
+      </nav>
+    </aside>
+
+    <main class="guide-main">
+      <div class="hero" id="top">
+        <div class="eyebrow">Dành cho người dùng mới</div>
+        <h2>Tạo một template video mới bằng Catalog Studio</h2>
+        <p>
+          Catalog Studio là công cụ quản lý thư mục template trực quan. Bạn có thể tạo objective,
+          tạo template, sửa file HTML/JSON, xem preview, render MP4, quản lý block và tải sound effect
+          mà không cần mở từng thư mục bằng tay.
+        </p>
+      </div>
+
+      <div class="quick-grid">
+        <div class="quick-card">
+          <strong>Luồng ngắn nhất</strong>
+          <span>Tạo bằng AI hoặc Sửa bằng AI → kiểm tra 3 file → Render.</span>
+        </div>
+        <div class="quick-card">
+          <strong>Template mới nên dùng</strong>
+          <span>Render mode <code>Auto</code> hoặc <code>Folder template</code>.</span>
+        </div>
+        <div class="quick-card">
+          <strong>BlockRef không tự nhúng HTML</strong>
+          <span>Nó chỉ ghi dependency vào <code>schema.json</code>.</span>
+        </div>
+      </div>
+
+      <section id="overview">
+        <h3>1. Studio dùng để làm gì?</h3>
+        <p>
+          Studio giúp bạn làm việc với catalog template trong thư mục
+          <code>src/renderer/hyperframes/catalog/objectives</code>. Mỗi template là một thư mục riêng,
+          bên trong có file cấu hình, dữ liệu demo và HTML template.
+        </p>
+        <p>
+          Khi bạn nhấn <strong>Render</strong>, Studio tạo lại <code>demo.html</code> và
+          <code>demo.mp4</code> để bạn xem bố cục thật trên khung 9:16.
+        </p>
+        <div class="note">
+          Studio đã có nút <strong>Tạo bằng AI</strong> để sinh template mẫu từ mô tả ngắn.
+          AI dùng cùng TrollLLM key/model đang cấu hình cho app chính. Người dùng vẫn nên kiểm tra lại JSON,
+          HTML/CSS và render preview trước khi coi template là hoàn thiện.
+        </div>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="concepts">
+        <h3>2. Ba khái niệm cần hiểu</h3>
+        <h4>Objective</h4>
+        <p>
+          Objective là nhóm mục đích video, ví dụ <code>explainer</code>, <code>breaking-news</code>,
+          <code>product-demo</code>. Khi tạo template giải thích kiến thức, bạn thường chọn
+          objective <code>explainer</code>.
+        </p>
+        <h4>Template</h4>
+        <p>
+          Template là một kiểu cảnh cụ thể. Ví dụ trong <code>explainer</code> có thể có template
+          “concept hook”, “cause effect”, “analogy bridge”, “data proof”.
+        </p>
+        <h4>Preview</h4>
+        <p>
+          Preview HTML cho biết bố cục trong trình duyệt. Preview MP4 cho biết bản video sau khi render.
+          Nếu chỉ sửa JSON/HTML mà chưa render, MP4 có thể vẫn là bản cũ.
+        </p>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="ai-create">
+        <h3>3. Tạo nhanh template bằng AI</h3>
+        <p>
+          Đây là cách nhanh nhất để có một template mẫu ban đầu. Bạn chỉ cần mô tả mục đích, bố cục,
+          phong cách và thành phần cần có. Studio sẽ gọi TrollLLM, sau đó tự chia kết quả về đúng ba file
+          <code>schema.json</code>, <code>demo.json</code>, <code>template.html.tmpl</code> và tạo
+          <code>demo.html</code> để xem trước.
+        </p>
+        <ol>
+          <li>Nhấn nút <strong>Tạo bằng AI</strong> trên thanh trên cùng.</li>
+          <li>Kiểm tra ô <strong>Objective</strong>. Nếu đang chọn <code>explainer</code>, ô này sẽ tự điền <code>explainer</code>.</li>
+          <li>Nhập <strong>Tên template muốn tạo</strong> nếu bạn muốn đặt tên cố định, ví dụ <code>explainer-three-step-map</code>. Có thể để trống để AI tự đặt.</li>
+          <li>Nhập mô tả template vào ô <strong>Mô tả template</strong>.</li>
+          <li>Nếu muốn có MP4 ngay, tick <strong>Render MP4 ngay sau khi tạo</strong>. Nếu không tick, Studio vẫn tạo HTML preview trước, bạn có thể render MP4 sau.</li>
+          <li>Nhấn <strong>Tạo template</strong> và chờ AI trả kết quả.</li>
+          <li>Sau khi tạo xong, Studio tự chọn template mới trong sidebar và mở các file vừa sinh.</li>
+          <li>Kiểm tra lại ba tab file, chỉnh nếu cần, rồi nhấn <strong>Render</strong>.</li>
+        </ol>
+        <h4>Mô tả nên viết như thế nào?</h4>
+        <p>Mô tả càng cụ thể, template sinh ra càng dễ dùng. Nên nói rõ:</p>
+        <ul>
+          <li>Template dùng cho loại video nào: explainer, breaking news, product demo, tutorial.</li>
+          <li>Bố cục chính: title lớn, 3 card, timeline, ảnh nền, chart, before/after, problem/solution.</li>
+          <li>Phong cách: tối, sạch, công nghệ, newsroom, minimal, có hình ảnh, có card nổi.</li>
+          <li>Animation mong muốn: nền chuyển động nhẹ, light sweep, card float, line pulse, reveal từng phần.</li>
+          <li>Dữ liệu cần có trong JSON: title, subtitle, steps, cards, metric, imageUrl, takeaway.</li>
+        </ul>
+        <h4>Ví dụ prompt tốt</h4>
+        <pre><code>Tạo một template explainer 9:16 để giải thích một khái niệm khó bằng 3 bước trực quan.
+Phong cách HyperFrames tối, hiện đại, có nền grid/noise, ánh sáng xanh nhẹ, card nổi.
+Bố cục gồm eyebrow, title lớn, subtitle, 3 step card nối với nhau bằng đường line, và takeaway ở cuối.
+Text phải tối ưu cho tiếng Việt, không bị cắt dấu. Có animation nhẹ liên tục sau khi các thành phần xuất hiện.</code></pre>
+        <div class="warning">
+          AI tạo template mẫu rất nhanh nhưng không thay thế bước kiểm tra. Luôn mở preview 9:16, xem text có tràn không,
+          ảnh có tải không, animation có chạy không, rồi render MP4 để xác nhận.
+        </div>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="ai-edit">
+        <h3>4. Sửa template hiện tại bằng AI</h3>
+        <p>
+          Khi đã có template nhưng muốn đổi bố cục, thêm animation, cải thiện màu sắc, thêm field JSON
+          hoặc sửa lỗi text tràn, dùng nút <strong>Sửa bằng AI</strong>. AI sẽ đọc cả ba file đang mở trong editor,
+          kể cả thay đổi bạn vừa nhập nhưng chưa lưu, rồi trả lại bản cập nhật đầy đủ.
+        </p>
+        <ol>
+          <li>Chọn một Objective và một Template trong sidebar.</li>
+          <li>Nhấn <strong>Sửa bằng AI</strong> ở toolbar phía trên editor.</li>
+          <li>Nhập yêu cầu chỉnh sửa cụ thể.</li>
+          <li>Nếu muốn render MP4 ngay sau khi sửa, tick checkbox render MP4.</li>
+          <li>Nhấn <strong>Sửa template</strong>.</li>
+          <li>Studio sẽ ghi lại <code>schema.json</code>, <code>demo.json</code>, <code>template.html.tmpl</code> và tạo lại <code>demo.html</code>.</li>
+          <li>Xem lại preview HTML/MP4, chỉnh tay thêm nếu cần.</li>
+        </ol>
+        <h4>Ví dụ yêu cầu sửa tốt</h4>
+        <pre><code>Giữ nội dung hiện tại nhưng đổi layout thành 3 card dạng timeline dọc.
+Thêm nền grid chuyển động nhẹ, light sweep qua tiêu đề, và pulse nhẹ ở các card.
+Đảm bảo chữ tiếng Việt không bị cắt dấu, không đặt text quan trọng ở vùng phụ đề dưới cùng.
+Cập nhật schema/demo nếu cần thêm field steps hoặc takeaway.</code></pre>
+        <div class="warning">
+          Sửa bằng AI là thao tác ghi đè file template hiện tại. Nếu bạn đang thử nghiệm trên template quan trọng,
+          nên tạo một template bản sao trước hoặc kiểm tra kỹ phần diff bằng editor sau khi AI trả kết quả.
+        </div>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="workflow">
+        <h3>5. Quy trình tạo một template mới thủ công</h3>
+        <ol>
+          <li>Mở Studio ở <code>http://localhost:3001</code>.</li>
+          <li>Ở cột trái, chọn Objective phù hợp. Ví dụ: <code>Explainer</code>.</li>
+          <li>Nếu chưa có Objective phù hợp, nhập tên ở ô <strong>Tên objective mới</strong> rồi nhấn <strong>Tạo</strong>.</li>
+          <li>Ở phần <strong>Templates</strong>, nhập tên template mới, ví dụ <code>explainer-visual-steps</code>, rồi nhấn <strong>Tạo</strong>.</li>
+          <li>Studio sẽ tạo sẵn ba file: <code>schema.json</code>, <code>demo.json</code>, <code>template.html.tmpl</code>.</li>
+          <li>Sửa <code>schema.json</code> để mô tả template và khai báo dữ liệu mặc định.</li>
+          <li>Sửa <code>demo.json</code> để tạo nội dung mẫu dùng cho preview.</li>
+          <li>Sửa <code>template.html.tmpl</code> để thiết kế HTML/CSS của cảnh.</li>
+          <li>Nhấn <strong>Lưu file</strong>. Nếu quên lưu, nút <strong>Render</strong> cũng sẽ cố lưu trước khi render.</li>
+          <li>Chọn render mode <strong>Auto</strong> hoặc <strong>Folder template</strong>, để thời lượng ví dụ <code>5</code> giây.</li>
+          <li>Nhấn <strong>Render</strong> và xem lại hai khung <strong>HTML 9:16</strong> và <strong>MP4 9:16</strong>.</li>
+          <li>Nếu bố cục lỗi, quay lại sửa HTML/CSS/JSON rồi render lại.</li>
+        </ol>
+        <div class="success">
+          Cách làm thực tế nên là sửa nhỏ, render nhanh, kiểm tra ngay. Đừng viết quá nhiều HTML/CSS rồi mới render lần đầu.
+        </div>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="files">
+        <h3>6. Ba file trong mỗi template</h3>
+        <table class="file-table">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Dùng để làm gì?</th>
+              <th>Khi nào cần sửa?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>schema.json</code></td>
+              <td>Mô tả template, dữ liệu mặc định, blockRefs và các trường template cần.</td>
+              <td>Sửa khi muốn đổi tên, mô tả, default text, màu, danh sách block liên quan.</td>
+            </tr>
+            <tr>
+              <td><code>demo.json</code></td>
+              <td>Dữ liệu mẫu để Studio render preview. Thường scene đầu tiên được dùng.</td>
+              <td>Sửa khi muốn preview bằng nội dung thật hơn hoặc test text dài/ngắn.</td>
+            </tr>
+            <tr>
+              <td><code>template.html.tmpl</code></td>
+              <td>HTML/CSS chính của template. Đây là nơi quyết định hình ảnh, bố cục, animation.</td>
+              <td>Sửa khi muốn thay giao diện, chuyển động, typography, background.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h4>Ví dụ <code>schema.json</code> tối thiểu</h4>
+        <pre><code>{
+  "template": "explainer-visual-steps",
+  "description": "Explainer scene with a headline and three visual steps.",
+  "templateData": {
+    "eyebrow": "GIẢI THÍCH NHANH",
+    "title": "Một ý tưởng khó trở nên dễ hiểu",
+    "subtitle": "Chia khái niệm thành ba bước trực quan.",
+    "steps": ["Vấn đề", "Cách hoạt động", "Kết luận"],
+    "blockRefs": ["shimmer-sweep"]
+  }
+}</code></pre>
+
+        <h4>Ví dụ <code>demo.json</code> tối thiểu</h4>
+        <pre><code>{
+  "objective": "explainer",
+  "template": "explainer-visual-steps",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Hãy chia ý tưởng này thành ba bước để người xem dễ nắm bắt.",
+      "ttsVoice": "Hãy chia ý tưởng này thành ba bước để người xem dễ nắm bắt.",
+      "template": "explainer-visual-steps",
+      "templateData": {
+        "eyebrow": "GIẢI THÍCH NHANH",
+        "title": "Blockchain giống như một sổ cái chung",
+        "subtitle": "Mọi người cùng nhìn thấy cùng một lịch sử.",
+        "steps": ["Ghi nhận", "Xác thực", "Đồng thuận"]
+      }
+    }
+  ]
+}</code></pre>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="placeholders">
+        <h3>7. Placeholder trong <code>template.html.tmpl</code></h3>
+        <p>
+          File HTML template có thể dùng placeholder dạng <code>{{...}}</code>. Khi render,
+          Studio thay placeholder bằng dữ liệu từ <code>demo.json</code> và <code>schema.json</code>.
+        </p>
+        <ul>
+          <li><code>{{template}}</code>: tên template hiện tại.</li>
+          <li><code>{{objective}}</code>: objective hiện tại.</li>
+          <li><code>{{duration}}</code>: số giây render preview.</li>
+          <li><code>{{templateData}}</code>: toàn bộ templateData dưới dạng JSON text.</li>
+          <li><code>{{scene}}</code>: toàn bộ scene demo dưới dạng JSON text.</li>
+          <li><code>{{templateData.title}}</code>: lấy một field cụ thể trong templateData.</li>
+          <li><code>{{templateData.subtitle}}</code>: lấy subtitle.</li>
+        </ul>
+
+        <h4>Ví dụ HTML template đơn giản</h4>
+        <pre><code>&lt;section class="explainer-template"&gt;
+  &lt;style&gt;
+    .explainer-template {
+      position: absolute;
+      inset: 0;
+      width: 1080px;
+      height: 1920px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 24px;
+      padding: 96px;
+      overflow: hidden;
+      background: #0a0a0f;
+      color: #e4e4e7;
+      font-family: system-ui, sans-serif;
+    }
+    .eyebrow {
+      color: #60a5fa;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .title {
+      font-size: 78px;
+      line-height: 1.02;
+      font-weight: 800;
+    }
+    .subtitle {
+      color: #a1a1aa;
+      font-size: 34px;
+      line-height: 1.22;
+    }
+  &lt;/style&gt;
+  &lt;div class="eyebrow"&gt;{{templateData.eyebrow}}&lt;/div&gt;
+  &lt;div class="title"&gt;{{templateData.title}}&lt;/div&gt;
+  &lt;div class="subtitle"&gt;{{templateData.subtitle}}&lt;/div&gt;
+&lt;/section&gt;</code></pre>
+
+        <div class="warning">
+          Template nên tự giới hạn trong khung 1080×1920. Dùng <code>position:absolute</code>,
+          <code>inset:0</code>, <code>overflow:hidden</code> để tránh tràn khỏi frame.
+        </div>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="render">
+        <h3>8. Render mode là gì?</h3>
+        <p>Dropdown render có ba lựa chọn:</p>
+        <ul>
+          <li><strong>Auto</strong>: Studio tự chọn. Đây là lựa chọn nên dùng mặc định.</li>
+          <li><strong>Runtime renderer</strong>: dùng template đã được code sẵn trong hệ thống renderer.</li>
+          <li><strong>Folder template</strong>: dùng trực tiếp file <code>template.html.tmpl</code> trong thư mục template hiện tại.</li>
+        </ul>
+        <div class="note">
+          Với template mới do bạn tạo trong Studio, hãy dùng <strong>Auto</strong> hoặc
+          <strong>Folder template</strong>. Nếu chọn <strong>Runtime renderer</strong> cho template chưa được hard-code,
+          kết quả có thể không đúng như file HTML bạn đang sửa.
+        </div>
+        <p>
+          Ô số cạnh dropdown là thời lượng preview, tính bằng giây. Ví dụ <code>5</code> nghĩa là render MP4 demo 5 giây.
+        </p>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="blocks">
+        <h3>9. Block library và nút Chèn blockRef</h3>
+        <p>
+          Block là các khối HTML hoặc hiệu ứng có thể tái sử dụng, ví dụ chart, notification, shimmer, transition.
+          Block library trong Studio giúp bạn xem thử, tạo, upload, sửa hoặc xoá các block này.
+        </p>
+        <h4>Các nút trong Block library</h4>
+        <ul>
+          <li><strong>Chọn một block</strong>: click vào tên block để xem preview bên phải.</li>
+          <li><strong>Mở</strong>: mở preview block trong tab riêng.</li>
+          <li><strong>Tạo block</strong>: tạo một file block HTML mới trong thư viện block.</li>
+          <li><strong>Tải lên</strong>: upload một file <code>.html</code> vào thư viện block.</li>
+          <li><strong>Sửa HTML</strong>: mở nội dung block đang chọn để sửa trực tiếp.</li>
+          <li><strong>Copy HTML</strong>: copy toàn bộ HTML của block, kèm <code>BLOCK_REF</code> và <code>BLOCK_FILE</code>, để dán vào prompt AI khi muốn AI dùng hoặc biến tấu block đó.</li>
+          <li><strong>Xoá</strong>: xoá block đang chọn khỏi thư viện.</li>
+        </ul>
+
+        <h4>Chèn blockRef nghĩa là gì?</h4>
+        <p>
+          <strong>Chèn blockRef</strong> chỉ thêm tên block đang chọn vào
+          <code>schema.json → templateData.blockRefs</code>.
+        </p>
+        <pre><code>{
+  "templateData": {
+    "title": "Ví dụ",
+    "blockRefs": ["app-showcase", "shimmer-sweep"]
+  }
+}</code></pre>
+        <p>
+          Nói dễ hiểu: blockRef là danh sách “template này có liên quan hoặc cần những block nào”.
+          Nó giúp người làm template và pipeline biết dependency của template.
+        </p>
+        <div class="warning">
+          <strong>Chèn blockRef không tự đưa block đó vào màn hình video.</strong>
+          Nếu muốn block xuất hiện trong cảnh, bạn vẫn cần đưa HTML/CSS/logic của block vào
+          <code>template.html.tmpl</code>, hoặc tự viết layout gọi lại phần tương ứng.
+        </div>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="sfx">
+        <h3>10. SFX library dùng thế nào?</h3>
+        <p>
+          SFX library là nơi quản lý sound effect trong <code>assets/sfx</code>. Bạn có thể nghe thử,
+          upload file mới, đổi tên hoặc xoá file.
+        </p>
+        <ul>
+          <li><strong>Tải SFX</strong>: upload <code>.mp3</code>, <code>.wav</code>, <code>.m4a</code> hoặc <code>.ogg</code>.</li>
+          <li><strong>Copy path</strong>: copy đường dẫn chuẩn của sound effect, ví dụ <code>assets/sfx/transition/swoosh.mp3</code>, để dán vào prompt AI.</li>
+          <li><strong>Đổi tên</strong>: đổi tên file hoặc chuyển sang category khác, ví dụ <code>transition/pop-soft.mp3</code>.</li>
+          <li><strong>Xoá</strong>: xoá sound effect khỏi thư viện.</li>
+          <li><strong>Click vào SFX</strong>: chọn và nghe thử bằng audio player.</li>
+        </ul>
+        <div class="note">
+          Ở phiên bản hiện tại, chọn hoặc upload SFX không tự gắn âm thanh vào template.
+          Đây là thư viện quản lý file âm thanh. Việc template dùng SFX nào vẫn phụ thuộc logic render
+          hoặc quy ước bạn khai báo trong JSON/template.
+        </div>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="image-template">
+        <h3>11. Tạo template có hình ảnh hoặc background image</h3>
+        <p>
+          Với template explainer có hình ảnh, bạn thường khai báo URL ảnh trong <code>templateData</code>,
+          sau đó dùng placeholder trong CSS hoặc thẻ <code>&lt;img&gt;</code>.
+        </p>
+        <h4>Ví dụ dữ liệu demo</h4>
+        <pre><code>{
+  "templateData": {
+    "title": "Ba bước để hiểu một khái niệm",
+    "imageUrl": "/assets/examples/explainer-background.jpg",
+    "caption": "Hình minh hoạ giúp người xem neo ý tưởng."
+  }
+}</code></pre>
+        <h4>Ví dụ dùng trong HTML</h4>
+        <pre><code>&lt;section class="image-explainer"&gt;
+  &lt;style&gt;
+    .image-explainer {
+      position: absolute;
+      inset: 0;
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: #0a0a0f;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+    }
+    .bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: .72;
+    }
+    .shade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(10,10,15,.2), rgba(10,10,15,.92));
+    }
+    .content {
+      position: absolute;
+      left: 72px;
+      right: 72px;
+      bottom: 120px;
+    }
+    .title {
+      font-size: 76px;
+      line-height: 1.02;
+      font-weight: 800;
+    }
+  &lt;/style&gt;
+  &lt;img class="bg" src="{{templateData.imageUrl}}" alt=""&gt;
+  &lt;div class="shade"&gt;&lt;/div&gt;
+  &lt;div class="content"&gt;
+    &lt;div class="title"&gt;{{templateData.title}}&lt;/div&gt;
+    &lt;p&gt;{{templateData.caption}}&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/section&gt;</code></pre>
+        <div class="warning">
+          Hãy dùng ảnh có đường dẫn mà trình duyệt preview truy cập được, ví dụ dưới <code>/assets</code>,
+          <code>/sessions</code> hoặc URL public. Nếu ảnh nằm ngoài workspace, preview có thể không tải được.
+        </div>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="debug">
+        <h3>12. Kiểm tra lỗi thường gặp</h3>
+        <h4>Preview HTML có nhưng MP4 chưa có</h4>
+        <p>Nhấn <strong>Render</strong>. HTML có thể được tạo trước, còn MP4 chỉ có sau khi render video xong.</p>
+        <h4>Render báo JSON không hợp lệ</h4>
+        <p>Kiểm tra dấu phẩy cuối dòng, dấu ngoặc, dấu nháy trong <code>schema.json</code> hoặc <code>demo.json</code>.</p>
+        <h4>Text bị tràn khỏi màn hình</h4>
+        <p>Giảm font-size, tăng line-height hợp lý, thêm <code>overflow-wrap:anywhere</code> hoặc giới hạn chiều rộng.</p>
+        <h4>Ảnh không hiện</h4>
+        <p>Kiểm tra đường dẫn ảnh. Nếu dùng path local tuyệt đối, hãy chuyển ảnh vào thư mục được server phục vụ.</p>
+        <h4>Block đã chèn blockRef nhưng không xuất hiện</h4>
+        <p>Đây là đúng hành vi hiện tại. blockRef chỉ là reference trong schema, không tự nhúng block vào HTML.</p>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+
+      <section id="checklist">
+        <h3>13. Checklist trước khi coi template là hoàn thiện</h3>
+        <ul class="checklist">
+          <li><code>schema.json</code> hợp lệ và có description rõ ràng.</li>
+          <li><code>demo.json</code> có nội dung đủ dài để test bố cục thật.</li>
+          <li><code>template.html.tmpl</code> render đúng trong khung 9:16.</li>
+          <li>Text không đè lên nhau, không bị cắt mép, không quá nhỏ.</li>
+          <li>Ảnh/background tải được trong HTML preview.</li>
+          <li>Animation nhẹ, không làm mất khả năng đọc nội dung.</li>
+          <li>Nếu template cần block, <code>templateData.blockRefs</code> đã ghi đúng tên block.</li>
+          <li>Nếu có SFX liên quan, file đã nằm trong SFX library và tên/category dễ hiểu.</li>
+          <li>Đã nhấn <strong>Render</strong> và xem lại cả HTML lẫn MP4.</li>
+        </ul>
+        <div class="success">
+          Khi checklist này đạt, template đã sẵn sàng để dùng làm mẫu trong catalog hoặc tiếp tục tinh chỉnh ở pipeline chính.
+        </div>
+        <a class="top-link" href="#top">Lên đầu trang</a>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

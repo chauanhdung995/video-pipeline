@@ -1,0 +1,39 @@
+<!--
+Template: news-card
+Description: News-style card with kicker, title, and body.
+
+This file documents the HTML contract for this template folder.
+Runtime rendering is currently implemented by:
+src/renderer/hyperframesTemplateSystem.js
+
+Required templateData sample:
+{
+  "kicker": "Tin chính",
+  "title": "Tiêu đề ngắn",
+  "body": "Một câu giải thích hoặc trích dẫn ngắn",
+  "source": "Nguồn/brand nếu có",
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#111827",
+      "#2563eb"
+    ],
+    "pattern": "subtle data grid",
+    "opacity": 0.18
+  },
+  "appearanceOrder": [
+    "card"
+  ],
+  "timingPhrases": {
+    "title": "tiêu đề chính"
+  },
+  "sfx": {
+    "card": "tiêu đề chính",
+    "alert": 0.35
+  }
+}
+-->
+<section class="scene-template-news-card" data-template="news-card">
+  <!-- Replace this file with a real template implementation when this template becomes folder-rendered. -->
+  <pre data-template-data>{{templateData}}</pre>
+</section>

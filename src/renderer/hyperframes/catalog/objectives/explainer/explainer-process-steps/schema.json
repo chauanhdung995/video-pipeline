@@ -1,0 +1,44 @@
+{
+  "template": "explainer-process-steps",
+  "description": "Step-by-step explainer layout for how a process, mechanism, or workflow works.",
+  "templateData": {
+    "kicker": "QUY TRÌNH",
+    "title": "Một giao dịch đi qua 4 bước",
+    "steps": [
+      { "label": "01", "text": "Tạo yêu cầu", "detail": "Người dùng ký giao dịch." },
+      { "label": "02", "text": "Vào hàng đợi", "detail": "Mạng xếp thứ tự xử lý." },
+      { "label": "03", "text": "Xác nhận", "detail": "Node kiểm tra điều kiện." },
+      { "label": "04", "text": "Ghi kết quả", "detail": "Trạng thái được cập nhật." }
+    ],
+    "result": "Nhìn theo luồng này, mỗi độ trễ đều có vị trí rõ ràng.",
+    "background": {
+      "type": "gradient",
+      "colors": ["#08111f", "#15243a"],
+      "accent": "#22d3ee",
+      "mint": "#34d399",
+      "opacity": 0.16
+    },
+    "blockRefs": ["flowchart", "grid-pixelate-wipe", "shimmer-sweep"],
+    "appearanceOrder": ["title", "step1", "step2", "step3", "step4", "result"],
+    "timingPhrases": {
+      "title": "4 bước",
+      "step1": "tạo yêu cầu",
+      "step2": "hàng đợi",
+      "step3": "xác nhận",
+      "step4": "ghi kết quả",
+      "result": "vị trí rõ ràng"
+    },
+    "sfx": {
+      "title": "4 bước",
+      "step1": "tạo yêu cầu",
+      "step3": "xác nhận",
+      "result": "vị trí rõ ràng"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "objective": "mac-dinh",
+  "template": "feature-stack",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Sự thay đổi này đến từ nhiều lớp: hạ tầng, thói quen, và niềm tin.",
+      "ttsVoice": "Sự thay đổi này đến từ nhiều lớp: hạ tầng, thói quen, và niềm tin.",
+      "template": "feature-stack",
+      "templateData": {
+        "title": "Điều gì đang thay đổi",
+        "bullets": [
+          "lớp 1",
+          "lớp 2",
+          "lớp 3"
+        ],
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "title",
+          "stack-1",
+          "stack-2",
+          "stack-3"
+        ],
+        "timingPhrases": {
+          "title": "đang thay đổi"
+        },
+        "sfx": {
+          "title": "đang thay đổi",
+          "item1": "lớp 1",
+          "item2": "lớp 2",
+          "item3": "lớp 3"
+        }
+      },
+      "visual": "LAYOUT: feature-stack. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: title → stack-1 → stack-2 → stack-3. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: feature-stack. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: title → stack-1 → stack-2 → stack-3. TEXT OVERLAY: demo.",
+        "layout": "feature-stack",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "title",
+          "stack-1",
+          "stack-2",
+          "stack-3."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "feature-stack.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "title → stack-1 → stack-2 → stack-3.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

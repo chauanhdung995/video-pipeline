@@ -1,0 +1,50 @@
+<!--
+Template: quote-card
+Description: Mẫu trích dẫn lời nói của nhân vật trong tin nóng, tập trung vào câu nói và nguồn phát biểu.
+
+Runtime renderer: src/renderer/hyperframesTemplateSystem.js
+Chosen HyperFrames blocks/components: x-post, reddit-post, shimmer-sweep
+SFX timing keys only; fixed files are mapped in renderer TEMPLATE_SFX.
+
+Required templateData sample:
+{
+  "kicker": "TRÍCH DẪN",
+  "quote": "Ưu tiên hiện tại là bảo đảm an toàn cho người dân và công bố thông tin đã kiểm chứng.",
+  "speaker": "Đại diện cơ quan chức năng",
+  "role": "Phát biểu trong họp báo chiều nay",
+  "source": "Họp báo lúc 16:00",
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#05070d",
+      "#101827",
+      "#dc2626",
+      "#22d3ee"
+    ],
+    "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+    "opacity": 0.16
+  },
+  "blockRefs": [
+    "x-post",
+    "reddit-post",
+    "shimmer-sweep"
+  ],
+  "appearanceOrder": [
+    "quote",
+    "speaker",
+    "source"
+  ],
+  "timingPhrases": {
+    "quote": "ưu tiên hiện tại",
+    "speaker": "đại diện cơ quan chức năng",
+    "source": "họp báo"
+  },
+  "sfx": {
+    "quote": "ưu tiên hiện tại",
+    "speaker": "đại diện cơ quan chức năng"
+  }
+}
+-->
+<section class="scene-template-quote-card" data-template="quote-card">
+  <pre data-template-data>{{templateData}}</pre>
+</section>

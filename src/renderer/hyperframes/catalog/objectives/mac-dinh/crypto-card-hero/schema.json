@@ -1,0 +1,80 @@
+{
+  "template": "crypto-card-hero",
+  "description": "Crypto/payment card hero with wallet, halo, consumer icons, and stat badge.",
+  "templateData": {
+    "title": "THẺ CRYPTO HẰNG NGÀY",
+    "cardLabel": "VISA CRYPTO",
+    "statMain": "+500%",
+    "statSub": "~600M USD/tháng",
+    "note": "Visa 90% on-chain",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "elements": {
+      "card": {
+        "x": 540,
+        "y": 840,
+        "timingPhrase": "thẻ crypto"
+      },
+      "wallet": {
+        "x": 540,
+        "y": 910,
+        "timingPhrase": "ví"
+      },
+      "halo": {
+        "x": 540,
+        "y": 840,
+        "timingPhrase": "Visa on-chain"
+      },
+      "icons": [
+        {
+          "label": "Cà phê",
+          "x": 265,
+          "y": 510,
+          "timingPhrase": "cà phê"
+        },
+        {
+          "label": "Siêu thị",
+          "x": 540,
+          "y": 455,
+          "timingPhrase": "siêu thị"
+        },
+        {
+          "label": "Đặt xe",
+          "x": 815,
+          "y": 510,
+          "timingPhrase": "đặt xe"
+        }
+      ]
+    },
+    "appearanceOrder": [
+      "wallet",
+      "card",
+      "icons",
+      "halo",
+      "stat"
+    ],
+    "timingPhrases": {
+      "card": "thẻ crypto",
+      "stat": "năm trăm phần trăm"
+    },
+    "sfx": {
+      "wallet": "ví",
+      "card": "thẻ crypto",
+      "halo": "Visa on-chain",
+      "stat": "năm trăm phần trăm"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

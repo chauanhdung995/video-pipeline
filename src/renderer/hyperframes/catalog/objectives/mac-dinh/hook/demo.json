@@ -1,0 +1,84 @@
+{
+  "objective": "mac-dinh",
+  "template": "hook",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Mở đầu bằng một ý thật mạnh để người xem phải dừng lại ngay.",
+      "ttsVoice": "Mở đầu bằng một ý thật mạnh để người xem phải dừng lại ngay.",
+      "template": "hook",
+      "templateData": {
+        "headline": "Câu mở gây chú ý",
+        "subhead": "Một ý phụ ngắn",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "headline",
+          "subhead"
+        ],
+        "timingPhrases": {
+          "headline": "cụm hook chính",
+          "subhead": "cụm bổ trợ"
+        },
+        "sfx": {
+          "intro": 0.08,
+          "headline": "cụm hook chính"
+        }
+      },
+      "visual": "LAYOUT: hook. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: headline → subhead. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: hook. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: headline → subhead. TEXT OVERLAY: demo.",
+        "layout": "hook",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "headline",
+          "subhead."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "hook.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "headline → subhead.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

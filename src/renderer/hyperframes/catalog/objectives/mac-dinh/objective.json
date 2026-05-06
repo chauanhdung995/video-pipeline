@@ -1,0 +1,24 @@
+{
+  "id": "mac-dinh",
+  "name": "Mặc định",
+  "description": "Bộ template mặc định đang dùng trong pipeline hiện tại.",
+  "status": "ready",
+  "templates": [
+    "hook",
+    "comparison",
+    "comparison-vs",
+    "stat-hero",
+    "stat-pill",
+    "feature-list",
+    "feature-stack",
+    "callout",
+    "news-card",
+    "image-background-hero",
+    "image-inset-card",
+    "market-chart",
+    "crypto-card-hero",
+    "onchain-payment",
+    "payment-network-halo",
+    "outro"
+  ]
+}

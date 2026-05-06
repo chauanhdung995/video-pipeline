@@ -1,5 +1,7 @@
 // src/agents/sceneAgent.js - Bước 5: Tạo HTML cho từng cảnh
 import { callAI } from '../services/aiRouter.js';
+import { composeSceneHTML, estimateSceneDurationSec, inferTemplate } from '../renderer/hyperframesTemplateSystem.js';
+import { buildSfxCatalogForPrompt, getSfxDurationSec, normalizeSfxPlan } from '../services/sfxCatalog.js';
 
 const AR_CONFIGS = {
   '9:16': {
@@ -27,81 +29,6 @@ const AR_CONFIGS = {
 • Do not place text or key subjects in lower third — subtitle burn-in will cover them.
 • Background image/video: object-fit:cover; focal point at center 45%/40%, avoid cropping the subject.
 • Mascot/person/tall subject: max height {{SUBJECT_MAX_H}}px, bottom of subject stops above safe subtitle zone.`,
-  },
-  '16:9': {
-    w: 1920,
-    h: 1080,
-    label: 'landscape, YouTube',
-    sidePadding: 90,
-    topPadding: 70,
-    bottomPadding: 90,
-    textMaxW: 980,
-    heroMaxW: 920,
-    cardMinW: 520,
-    cardMaxW: 760,
-    subjectMaxH: 450,
-    textBlockMaxH: 300,
-    safeCenterW: 1320,
-    safeCenterH: 620,
-    splitGap: 80,
-    layoutRules: `RULES FOR 16:9 (wide landscape, cinematic):
-• Focal area: center slightly offset left/right; leverage width for split layouts, timelines, dashboards.
-• Hero text/number: max-width {{HERO_MAX_W}}px; avoid stretching into one long unreadable line.
-• 2 clear columns or 60/40 layout allowed, but each block needs at least {{SPLIT_GAP}}px breathing room.
-• Main subject (text block) max height {{TEXT_BLOCK_MAX_H}}px; avoid overly long vertical stacks.
-• Horizontal video/image: prefer object-fit:cover or contain based on asset, always within a clear frame without cropping faces/text.
-• Secondary elements should spread horizontally, not all crowded at center like 9:16.
-• Avoid completely empty left/right edges or packing to the very edge; keep outer padding min {{SIDE_PADDING}}px.`,
-  },
-  '1:1':  {
-    w: 1080,
-    h: 1080,
-    label: 'square, Instagram',
-    sidePadding: 70,
-    topPadding: 70,
-    bottomPadding: 90,
-    textMaxW: 760,
-    heroMaxW: 730,
-    cardMinW: 520,
-    cardMaxW: 700,
-    subjectMaxH: 700,
-    textBlockMaxH: 280,
-    safeCenterW: 740,
-    safeCenterH: 740,
-    splitGap: 32,
-    layoutRules: `RULES FOR 1:1 (square, perfect balance):
-• Focal area: frame center; prefer symmetric, radial, orbit layouts; 1 hero + 1 label.
-• Hero text/number: max-width {{HERO_MAX_W}}px; text block height max {{TEXT_BLOCK_MAX_H}}px.
-• Avoid overly tall or wide layouts; split layout only for very simple content.
-• Main asset should be within the safe zone {{SAFE_CENTER_W}}px × {{SAFE_CENTER_H}}px at frame center.
-• Card/list: max 3 items, each large and spacious; no dense dashboards.
-• Background decoration should wrap around subject; do not block 4 corners with large objects.
-• Maintain {{SIDE_PADDING}}px breathing room on each side inside #content to avoid cramped feel.`,
-  },
-  '4:5':  {
-    w: 1080,
-    h: 1350,
-    label: 'portrait, Instagram Portrait',
-    sidePadding: 65,
-    topPadding: 60,
-    bottomPadding: 105,
-    textMaxW: 790,
-    heroMaxW: 760,
-    cardMinW: 600,
-    cardMaxW: 820,
-    subjectMaxH: 760,
-    textBlockMaxH: 300,
-    safeCenterW: 780,
-    safeCenterH: 760,
-    splitGap: 34,
-    layoutRules: `RULES FOR 4:5 (portrait, balanced between feed and mobile):
-• Focal area: slightly above center; vertical layout but less extreme than 9:16.
-• Hero text/number: max-width {{HERO_MAX_W}}px; can use 2 short text rows.
-• Card, chart, product shot: width {{CARD_MIN_W}}px to {{CARD_MAX_W}}px; avoid assets so tall they dominate the frame.
-• Split layout works if each block is large enough; best as 1 hero + 1 support block below or beside.
-• Bottom of main subject must stop above safe lower third; no CTA/text near the bottom edge.
-• Portrait/person photo: maintain headroom {{TOP_PADDING}}px to 90px, avoid cropping head or hands.
-• Min side padding {{SIDE_PADDING}}px, min top padding {{TOP_PADDING}}px for comfortable feed view.`,
   },
 };
 
@@ -460,10 +387,10 @@ Layout patterns:
 • VERSUS: left element (red) vs right element (green), VS badge center
 • REVEAL: cover overlay then clip-path reveal
 
-LAYOUT SELECTION BY RATIO:
-• 9:16, 4:5: prefer HERO, STACK, PHONE MOCKUP, REVEAL, ORBIT; limit wide SPLIT/DASHBOARD.
-• 16:9: prefer SPLIT, TIMELINE, CHART, DASHBOARD, VERSUS; avoid cramming everything into center axis.
-• 1:1: prefer HERO, ORBIT, short STACK, REVEAL; avoid overly long TIMELINE or heavily asymmetric splits.
+LAYOUT SELECTION FOR 9:16:
+• Prefer HERO, STACK, PHONE MOCKUP, REVEAL, ORBIT.
+• Use SPLIT/DASHBOARD only when each column remains readable in a narrow vertical frame.
+• Keep the lower third clear for burned-in karaoke subtitles.
 
 Depth layers (z-index):
 • 0: three-bg canvas
@@ -519,45 +446,11 @@ DIRECTION RULES — READ CAREFULLY, APPLY STRICTLY:
 CONCEPT → VISUAL MAPPING: see PART 5 — Style Guide (domain-specific mapping).
 
 ════════════════════════════════════════
-PART 10 — BRAND ASSETS (OPTIONAL)
+PART 10 — TEMPLATE-DRIVEN VISUALS
 ════════════════════════════════════════
 
-Available brand assets list (format: NAME | TYPE | PATH [| DURATION]):
-{{BRAND_ASSETS}}
-
-USAGE RULES:
-• If list has a "character ..." file → MUST use 1 character best matching the scene emotion/content.
-• If list only has background/video/gif → use if suitable, not mandatory.
-• Maximum 1 character + 1 background asset. NEVER use more than 2 assets.
-Usage by type:
-
-• image (.png/.jpg/.webp): use <img src="[PATH]"> — mascot, icon, background
-  <img src="URL" style="position:absolute;bottom:120px;left:50%;transform:translateX(-50%);width:260px;z-index:70;pointer-events:none;opacity:0">
-  Animate: fadeIn + float translateY ±15px loop 3s.
-
-• gif (.gif): use <img src="[PATH]"> — auto-plays in Chrome
-  Place like image, mind duration to sync with beat.
-
-• video (.mp4/.webm): use <video src="[PATH]" autoplay muted loop playsinline>
-  Typically used as background or overlay. Use appropriate z-index for layout.
-  <video src="URL" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:5;opacity:0.3;pointer-events:none"></video>
-
-Do not cover main content (content y:300–1400). Use appropriate z-index and opacity.
-
-════════════════════════════════════════
-PART 10B — PROJECT ASSETS (MANDATORY USE)
-════════════════════════════════════════
-
-Assets specifically provided by producer, assigned to this scene (format: NAME_DESC | TYPE | PATH | ASPECT_RATIO):
-{{PROJECT_ASSETS}}
-
-MANDATORY RULES:
-• If list is NOT "(none)" → MUST use ALL listed assets in this scene.
-• This is a producer requirement — NEVER skip any asset.
-• Use aspect ratio to calculate appropriate container size (e.g. 16:9 → width:100%;height:56vw).
-• Place at the most suitable position and timing for the voice/visual content — can be main subject or background overlay.
-• Usage same as PART 10 (image/gif → <img>, video → <video autoplay muted loop playsinline>).
-• Paths are file:// — puppeteer loads directly from disk, no conversion needed.
+Use only generated HTML/CSS/SVG/canvas elements and the selected HyperFrames template structure.
+Do not depend on external image/video/GIF producer assets or brand-specific media folders.
 
 ════════════════════════════════════════
 PART 11 — TECHNICAL CONSTRAINTS
@@ -655,49 +548,6 @@ LANGUAGE:
 
 RETURN ONLY <!DOCTYPE html>...</html>. No markdown fence, no explanation.`;
 
-const THUMBNAIL_PROMPT = `Generate STATIC HTML thumbnail for a Vietnamese video on Chrome headless {{W}}×{{H}}px ({{RATIO_LABEL}}).
-
-THIS IS A STATIC THUMBNAIL IMAGE, NOT A VIDEO SCENE.
-Thumbnail title: "{{TITLE}}"
-Thumbnail description: "{{PROMPT}}"
-
-LAYOUT PARAMETERS BY ASPECT RATIO:
-{{ASPECT_RATIO_RULES}}
-
-MANDATORY REQUIREMENTS:
-• Create a static layout only — to be captured as 1 JPEG image.
-• NO anime.js, gsap, requestAnimationFrame, setTimeout, particle loops, progress bars, or any animations.
-• Prioritize strong, readable, high-contrast layout with 1 main subject and short text overlay.
-• Text must be large, clear, with proper Vietnamese character support, not covered or touching edges.
-• Can use gradients, glow, inline SVG, icons, shapes, project asset images if suitable.
-• Result must look like a real YouTube/TikTok thumbnail: clear focal point, minimal clutter, not spread thin.
-
-AVAILABLE PROJECT ASSETS:
-{{PROJECT_ASSETS}}
-
-STYLE GUIDE:
-{{STYLE_GUIDE}}
-
-RETURN 1 COMPLETE HTML FILE USING THIS FRAME:
-<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box}
-html,body{width:{{W}}px;height:{{H}}px;margin:0;padding:0;overflow:hidden;background:#05050a}
-body{font-family:'Be Vietnam Pro',sans-serif;color:#fff}
-.txt{display:block;line-height:1.5;overflow:visible;padding-top:0.15em;padding-bottom:0.05em}
-#stage{position:relative;width:{{W}}px;height:{{H}}px;overflow:hidden;background:#05050a}
-#content{position:absolute;inset:10px;overflow:hidden}
-</style></head><body>
-<div id="stage">
-  <div id="content">
-    <!-- STATIC THUMBNAIL LAYOUT HERE -->
-  </div>
-</div>
-</body></html>
-
-RETURN ONLY <!DOCTYPE html>...</html>. NO markdown fence, NO explanation.`;
-
 const fmtMs = ms => ms < 60000 ? `${(ms/1000).toFixed(1)}s` : `${Math.floor(ms/60000)}m${Math.round((ms%60000)/1000)}s`;
 
 const EDIT_HTML_PROMPT = `You are an expert HTML animation editor. Edit the following HTML per the user's request.
@@ -716,22 +566,78 @@ MANDATORY RULES:
 • Google Fonts: <link href="..." rel="stylesheet"> — NEVER omit href/rel.
 • RETURN ONLY <!DOCTYPE html>...</html>. No markdown fence, no explanation.`;
 
-const EDIT_THUMBNAIL_HTML_PROMPT = `You are an expert static HTML thumbnail editor for video.
+const FREEFORM_HTML_PROMPT = `You are an expert HyperFrames HTML motion designer.
 
-EDIT REQUEST:
-{{EDIT_PROMPT}}
+Generate one complete HTML animation scene for Chrome headless 1080×1920 portrait video.
+The output is rendered by HyperFrames, then voiceover is injected by the pipeline.
 
-CURRENT HTML:
-{{CURRENT_HTML}}
+SCENE METADATA:
+- Scene number: {{STT}}
+- Duration: {{DURATION_SEC}}s
+- Voice narration: {{VOICE_JSON}}
+- Short visual direction: {{VISUAL_JSON}}
 
-MANDATORY RULES:
-• This is a STATIC THUMBNAIL, not a video scene.
-• Only change what the user requests, preserve everything else.
-• DO NOT add animations, anime.js, gsap timelines, requestAnimationFrame, setTimeout, progress bars, particle loops, or any motion effects.
-• Maintain static layout, clear subject, large text, strong contrast, authentic thumbnail style.
-• Keep HTML structure clean, complete, ending with </body></html>.
-• Google Fonts: <link href="..." rel="stylesheet"> — NEVER omit href/rel.
-• RETURN ONLY <!DOCTYPE html>...</html>. No markdown fence, no explanation.`;
+DETAILED HTML SPEC JSON:
+{{HTML_SPEC_JSON}}
+
+SRT BEATS:
+{{SRT_BEATS_JSON}}
+
+WORD TIMINGS:
+{{WORD_TIMINGS_JSON}}
+
+AVAILABLE LOCAL IMAGE ASSETS:
+{{IMAGE_ASSETS_JSON}}
+
+AVAILABLE SFX FILES:
+{{SFX_CATALOG_JSON}}
+
+SELECTED SFX PLAN:
+{{SFX_PLAN_JSON}}
+
+TIMING ALIGNMENT:
+- SRT BEATS and WORD TIMINGS are measured after the real TTS voice was generated.
+- Use SRT BEATS for beat wrapper enter/hold/exit timing.
+- Use WORD TIMINGS for important keyword reveals, number pops, image/card reveals, and animation accents.
+- SELECTED SFX PLAN may include "timingPhrase"; align the visual reveal for that cue to the matching word timing when available.
+- "startSec" in SELECTED SFX PLAN is only a rough fallback. The pipeline will prefer timingPhrase matched against WORD TIMINGS for final SFX audio placement.
+
+HYPERFRAMES HTML STANDARD:
+- Return exactly one complete HTML document, starting with <!DOCTYPE html> and ending with </html>.
+- Root scene element MUST be:
+  <div id="stage" data-vp-html-version="hyperframes-ai-v1" data-composition-id="scene-{{STT}}" data-width="1080" data-height="1920" data-start="0" data-duration="{{DURATION_SEC}}">
+- All visible content MUST live inside <div id="content">.
+- Register the deterministic HyperFrames timeline inside the load handler:
+  window.__timelines = window.__timelines || {};
+  var tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' } });
+  window.__timelines["scene-{{STT}}"] = tl;
+- All main GSAP animations MUST be added to that registered tl timeline. Do not create unregistered timelines.
+- Do not use Math.random(), crypto random, Date.now() for visual randomness, requestAnimationFrame(), setInterval(), or infinite animation loops.
+- If variation is needed, use fixed arrays of coordinates/values or a tiny seeded PRNG function named seededRandom().
+- Never use repeat:-1. For ambient pulses, use a finite repeat count that fits inside the scene duration.
+- Use fixed pixel layout for 1080×1920. Do not use viewport-sized fonts.
+- Keep main content above y=1420 because subtitles are burned in later.
+- Include no voiceover audio tag. The pipeline injects voiceover.
+- Do not include remote images, videos, iframes, or external producers' assets.
+- If AVAILABLE LOCAL IMAGE ASSETS is not empty, visibly use at least one listed local image src in this scene.
+- Use only listed local image src values. Never invent image paths or use original remote URLs.
+- Image scenes should place the image as a background, evidence card, hero panel, side panel, or annotation image according to htmlSpec.assets/layout.
+- You MAY use CDN scripts for gsap/anime/tsParticles/Three.js only when needed. Keep imports minimal.
+- Do not include SFX audio tags. The pipeline injects selected SFX automatically from SELECTED SFX PLAN using /assets/sfx/... files from the catalog.
+
+VISUAL QUALITY RULES:
+- Make the HTML match the detailed htmlSpec. Use the JSON as the source of truth.
+- All on-screen human text must be Vietnamese and concise.
+- Each timeline beat should use one wrapper div: #beat-1, #beat-2, etc.
+- Only one beat wrapper should be visible at a time, except ambient/background layers.
+- Every absolutely positioned visible element must have explicit top, left, width, and height or an equivalent inset.
+- Vietnamese text must not be clipped: line-height >= 1.25, overflow visible, enough top padding.
+- Use an ambient layer (CSS, particles, SVG, or canvas) so the scene is not static.
+- Set var _animReady=false; before load. Inside window.addEventListener('load', function(){...}), set _animReady=true, register window.__timelines["scene-{{STT}}"], and add animations to the paused tl.
+- Include a failsafe that makes #content children visible if animation does not initialize within 2 seconds.
+- End the scene with the final/climax beat visible until the end.
+
+RETURN ONLY THE HTML DOCUMENT. No markdown fence, no explanation.`;
 
 export async function editSceneHTML({ currentHtml, editPrompt, keys, onLog }) {
   const prompt = EDIT_HTML_PROMPT
@@ -750,118 +656,319 @@ export async function editSceneHTML({ currentHtml, editPrompt, keys, onLog }) {
   return html;
 }
 
-export async function editThumbnailHTML({ currentHtml, editPrompt, keys, onLog }) {
-  const prompt = EDIT_THUMBNAIL_HTML_PROMPT
-    .replace('{{EDIT_PROMPT}}', editPrompt)
-    .replace('{{CURRENT_HTML}}', currentHtml);
-
+export async function generateSceneHTML({ scene, keys, onLog, styleGuide = '', sceneCount = 0, useTemplateMode = true }) {
   const t0 = Date.now();
-  const { result } = await callAI({ prompt, isJson: false, keys, onLog });
-  let html = result.trim();
-  if (!html.toLowerCase().includes('<!doctype')) {
-    html = html.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
+  const subsArr = parseSRT(scene.srt || '');
+  const durationSec = estimateSceneDurationSec(scene.srt || '', 6);
+  const wordCount = Array.isArray(scene.wordTimings) ? scene.wordTimings.length : 0;
+  const shouldUseTemplate = useTemplateMode !== false && scene?.useTemplateMode !== false && scene?.generationMode !== 'ai-html';
+
+  if (!shouldUseTemplate) {
+    const html = await generateFreeformSceneHTML({
+      scene,
+      keys,
+      onLog,
+      durationSec,
+      subsArr,
+      wordCount,
+    });
+    const lines = html.split('\n').length;
+    const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
+    onLog?.(`✓ Cảnh ${scene.stt}: HTML AI HyperFrames ${lines} dòng (${kb} KB) | ${fmtMs(Date.now() - t0)}`);
+    return html;
   }
+
+  const templateName = inferTemplate(scene, sceneCount);
+  const dataMode = scene?.templateData ? 'templateData' : 'voice fallback';
+  onLog?.(`Cảnh ${scene.stt}: compose HyperFrames template=${templateName} (${dataMode}) | ${subsArr.length} beat SRT | ${wordCount} word timings | ${durationSec.toFixed(2)}s`);
+
+  const html = composeSceneHTML({
+    scene,
+    sceneCount,
+    styleGuide,
+    durationSec,
+  });
+
   const lines = html.split('\n').length;
   const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
-  onLog?.(`✓ Thumbnail HTML đã sửa: ${lines} dòng (${kb} KB) | ${fmtMs(Date.now() - t0)}`);
+  onLog?.(`✓ Cảnh ${scene.stt}: HTML HyperFrames deterministic ${lines} dòng (${kb} KB) | ${fmtMs(Date.now() - t0)}`);
   return html;
 }
 
-export async function generateSceneHTML({ scene, keys, onLog, brandAssets = [], projectAssets = [], outputAspectRatio = '9:16', styleGuide = DEFAULT_STYLE_GUIDE }) {
-  const ar = AR_CONFIGS[outputAspectRatio] || AR_CONFIGS['9:16'];
-  const aspectRatioRules = getAspectRatioRules(ar);
-  const contentW      = ar.w - 20;
-  const contentH      = ar.h - 20;
-  const lowerThirdY   = Math.round(ar.h * 0.807);
-  const contentMaxY   = Math.round(ar.h * 0.792);
-  const subsArr = parseSRT(scene.srt || '').map(s => ({
-    from: srtToMs(s.from),
-    to: srtToMs(s.to),
-    text: s.text
+async function generateFreeformSceneHTML({ scene, keys, onLog, durationSec, subsArr, wordCount }) {
+  const sfxPlan = normalizeSfxPlan(scene?.sfxPlan || []);
+  const imageAssets = collectSceneImageAssets(scene);
+  const prompt = FREEFORM_HTML_PROMPT
+    .replaceAll('{{STT}}', String(scene?.stt ?? 'x'))
+    .replaceAll('{{DURATION_SEC}}', durationSec.toFixed(3))
+    .replace('{{VOICE_JSON}}', JSON.stringify(scene?.voice || ''))
+    .replace('{{VISUAL_JSON}}', JSON.stringify(scene?.visual || ''))
+    .replace('{{HTML_SPEC_JSON}}', JSON.stringify(scene?.htmlSpec || buildFallbackHtmlSpec(scene), null, 2))
+    .replace('{{SRT_BEATS_JSON}}', JSON.stringify(toPromptSrtBeats(subsArr), null, 2))
+    .replace('{{WORD_TIMINGS_JSON}}', JSON.stringify(toPromptWordTimings(scene?.wordTimings), null, 2))
+    .replace('{{IMAGE_ASSETS_JSON}}', JSON.stringify(imageAssets, null, 2))
+    .replace('{{SFX_CATALOG_JSON}}', JSON.stringify(buildSfxCatalogForPrompt(), null, 2))
+    .replace('{{SFX_PLAN_JSON}}', JSON.stringify(sfxPlan, null, 2));
+
+  onLog?.(`Cảnh ${scene.stt}: AI tạo HTML từ htmlSpec | ${subsArr.length} beat SRT | ${wordCount} word timings | ${imageAssets.length} ảnh | ${sfxPlan.length} SFX cue | ${durationSec.toFixed(2)}s`);
+  const { result } = await callAI({ prompt, isJson: false, keys, onLog });
+  let html = normalizeGeneratedHtml(result);
+  html = ensureAIHyperframesMarkers(html, scene, durationSec);
+  html = ensureRequiredImageRendered(html, scene, imageAssets);
+  html = injectFreeformSfx(html, { ...scene, sfxPlan }, durationSec);
+  return html;
+}
+
+function buildFallbackHtmlSpec(scene = {}) {
+  const voice = String(scene?.voice || '').trim();
+  return {
+    concept: voice || `Cảnh ${scene?.stt ?? ''}`,
+    mood: 'cinematic editorial',
+    palette: {
+      background: '#07111f',
+      surface: '#101827',
+      primary: '#38bdf8',
+      accent: '#facc15',
+      text: '#ffffff',
+    },
+    layout: {
+      pattern: 'HERO',
+      safeZone: 'main content above y=1420',
+      composition: 'centered hero text with one supporting visual motif',
+    },
+    background: {
+      type: 'gradient',
+      description: 'deep gradient with subtle animated grid',
+      motion: 'slow ambient drift',
+    },
+    elements: [
+      {
+        id: 'hero',
+        type: 'text',
+        content: voice.slice(0, 80),
+        position: { x: 110, y: 360, w: 860, h: 320 },
+        style: 'large bold Vietnamese text, white with accent highlight',
+        motion: 'fade and slide up, hold, gentle pulse',
+      },
+    ],
+    timeline: [
+      {
+        beat: 'main reveal',
+        startHint: 0,
+        endHint: 3,
+        visibleElements: ['hero'],
+        animation: 'hero enters then holds',
+        onScreenText: [voice.slice(0, 42)],
+      },
+    ],
+    typography: {
+      fontFamily: 'Be Vietnam Pro',
+      rules: 'fixed px sizes, line-height >= 1.25, overflow visible',
+    },
+    qualityChecklist: ['all content inside #content', 'lower third stays clear'],
+  };
+}
+
+function toPromptSrtBeats(subsArr = []) {
+  return (Array.isArray(subsArr) ? subsArr : []).map((item, index) => ({
+    index: index + 1,
+    from: item.from,
+    to: item.to,
+    startSec: Number((srtToMs(item.from) / 1000).toFixed(3)),
+    endSec: Number((srtToMs(item.to) / 1000).toFixed(3)),
+    text: item.text,
   }));
-  const duration = subsArr.length ? Math.max(...subsArr.map(s => s.to)) : 5000;
+}
 
-  // Format brand assets: TÊN | LOẠI | URL [| duration]
-  const brandAssetsText = brandAssets.length
-    ? brandAssets.map(a => {
-        const dur = a.duration != null ? ` | ${a.duration}s` : '';
-        return `${a.name} | ${a.type} | ${a.url}${dur}`;
-      }).join('\n')
-    : '(none)';
+function toPromptWordTimings(wordTimings = []) {
+  return (Array.isArray(wordTimings) ? wordTimings : []).slice(0, 180).map(item => ({
+    word: String(item?.word || item?.text || '').trim(),
+    start: Number(Number(item?.start ?? 0).toFixed(3)),
+    end: Number(Number(item?.end ?? item?.start ?? 0).toFixed(3)),
+  })).filter(item => item.word);
+}
 
-  // Format project assets: TÊN | LOẠI | FILE_URL | ASPECT_RATIO
-  const projectAssetsText = projectAssets.length
-    ? projectAssets.map(a => `${a.name} | ${a.type} | ${a.fileUrl} | ${a.aspectRatio}`).join('\n')
-    : '(none)';
-
-  onLog?.(`Cảnh ${scene.stt}: ${subsArr.length} beat SRT | ${fmtMs(duration)} | ${brandAssets.length} brand assets | ${projectAssets.length} project assets`);
-
-  const prompt = SCENE_PROMPT
-    .replace(/\{\{W\}\}/g, ar.w)
-    .replace(/\{\{H\}\}/g, ar.h)
-    .replace(/\{\{RATIO_LABEL\}\}/g, ar.label)
-    .replace(/\{\{CONTENT_W\}\}/g, contentW)
-    .replace(/\{\{CONTENT_H\}\}/g, contentH)
-    .replace(/\{\{LOWER_THIRD_Y\}\}/g, lowerThirdY)
-    .replace(/\{\{CONTENT_MAX_Y\}\}/g, contentMaxY)
-    .replace(/\{\{SIDE_PADDING\}\}/g, ar.sidePadding)
-    .replace(/\{\{TOP_PADDING\}\}/g, ar.topPadding)
-    .replace(/\{\{BOTTOM_PADDING\}\}/g, ar.bottomPadding)
-    .replace(/\{\{TEXT_MAX_W\}\}/g, ar.textMaxW)
-    .replace(/\{\{HERO_MAX_W\}\}/g, ar.heroMaxW)
-    .replace(/\{\{CARD_MIN_W\}\}/g, ar.cardMinW)
-    .replace(/\{\{CARD_MAX_W\}\}/g, ar.cardMaxW)
-    .replace(/\{\{SUBJECT_MAX_H\}\}/g, ar.subjectMaxH)
-    .replace(/\{\{TEXT_BLOCK_MAX_H\}\}/g, ar.textBlockMaxH)
-    .replace(/\{\{SAFE_CENTER_W\}\}/g, ar.safeCenterW)
-    .replace(/\{\{SAFE_CENTER_H\}\}/g, ar.safeCenterH)
-    .replace(/\{\{SPLIT_GAP\}\}/g, ar.splitGap)
-    .replace('{{ASPECT_RATIO_RULES}}', aspectRatioRules)
-    .replace('{{VOICE}}', scene.voice.replace(/"/g, "'"))
-    .replace('{{VISUAL}}', scene.visual.replace(/"/g, "'"))
-    .replace(/\{\{DURATION\}\}/g, duration)
-    .replace('{{SUBS}}', JSON.stringify(subsArr, null, 2))
-    .replace('{{BRAND_ASSETS}}', brandAssetsText)
-    .replace('{{PROJECT_ASSETS}}', projectAssetsText)
-    .replace('{{STYLE_GUIDE}}', styleGuide);
-
-  const t0 = Date.now();
-  const { result } = await callAI({ prompt, isJson: false, keys, onLog });
-  let html = result.trim();
-  if (!html.toLowerCase().includes('<!doctype')) {
-    html = html.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
+function collectSceneImageAssets(scene = {}) {
+  const groups = [
+    Array.isArray(scene?.uploadedImageCandidates) ? scene.uploadedImageCandidates : [],
+    Array.isArray(scene?.imageCandidates) ? scene.imageCandidates : [],
+  ];
+  const seen = new Set();
+  const assets = [];
+  for (const item of groups.flat()) {
+    const src = String(item?.src || '').trim();
+    if (!src || seen.has(src)) continue;
+    if (!src.startsWith('/sessions/')) continue;
+    seen.add(src);
+    assets.push({
+      src,
+      title: String(item?.title || item?.name || item?.filename || '').trim(),
+      alt: String(item?.alt || item?.title || item?.name || '').trim(),
+      width: Number(item?.width) || 0,
+      height: Number(item?.height) || 0,
+      source: item?.source || (src.includes('/images/uploaded/') ? 'upload' : 'search'),
+    });
   }
-  const lines = html.split('\n').length;
-  const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
-  onLog?.(`✓ Cảnh ${scene.stt}: HTML ${lines} dòng (${kb} KB) | ${fmtMs(Date.now() - t0)}`);
+  return assets.slice(0, 10);
+}
+
+function normalizeGeneratedHtml(result) {
+  const html = String(result || '')
+    .replace(/^```html\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
+  if (!/^<!doctype html>/i.test(html)) {
+    throw new Error('AI HTML thiếu <!DOCTYPE html>');
+  }
+  if (!html.toLowerCase().endsWith('</html>')) {
+    throw new Error('AI HTML bị cắt dở, thiếu </html>');
+  }
+  if (!/<div\b(?=[^>]*\bid=["']stage["'])[^>]*>/i.test(html)) {
+    throw new Error('AI HTML thiếu <div id="stage"> theo chuẩn HyperFrames');
+  }
+  if (!/<div\b(?=[^>]*\bid=["']content["'])[^>]*>/i.test(html)) {
+    throw new Error('AI HTML thiếu <div id="content">');
+  }
   return html;
 }
 
-export async function generateThumbnailHTML({ title, prompt: thumbnailPrompt, keys, onLog, projectAssets = [], outputAspectRatio = '9:16', styleGuide = DEFAULT_STYLE_GUIDE }) {
-  const ar = AR_CONFIGS[outputAspectRatio] || AR_CONFIGS['9:16'];
-  const aspectRatioRules = getAspectRatioRules(ar);
-  const projectAssetsText = projectAssets.length
-    ? projectAssets.map(a => `${a.name} | ${a.type} | ${a.fileUrl} | ${a.aspectRatio}`).join('\n')
-    : '(none)';
+function ensureRequiredImageRendered(html, scene, imageAssets = []) {
+  if (!imageAssets.length) return html;
+  const hasAnyLocalImage = imageAssets.some(item => html.includes(item.src)) ||
+    /<(?:img|image)\b[^>]*(?:\/sessions\/[^"' >]+\/images\/|assets\/session-images\/)/i.test(html);
+  if (hasAnyLocalImage) return html;
 
-  const prompt = THUMBNAIL_PROMPT
-    .replace(/\{\{W\}\}/g, ar.w)
-    .replace(/\{\{H\}\}/g, ar.h)
-    .replace(/\{\{RATIO_LABEL\}\}/g, ar.label)
-    .replace('{{ASPECT_RATIO_RULES}}', aspectRatioRules)
-    .replace('{{TITLE}}', String(title || '').replace(/"/g, "'"))
-    .replace('{{PROMPT}}', String(thumbnailPrompt || '').replace(/"/g, "'"))
-    .replace('{{PROJECT_ASSETS}}', projectAssetsText)
-    .replace('{{STYLE_GUIDE}}', styleGuide);
+  const selected = imageAssets[0];
+  const label = selected.title || selected.alt || 'Ảnh minh họa';
+  const style = `<style>
+#vp-required-image-layer{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
+#vp-required-image-layer img{position:absolute;left:70px;top:120px;width:940px;height:760px;object-fit:cover;border-radius:34px;opacity:.58;filter:saturate(1.08) contrast(1.05);box-shadow:0 38px 110px rgba(0,0,0,.42)}
+#vp-required-image-layer::after{content:"";position:absolute;left:70px;top:120px;width:940px;height:760px;border-radius:34px;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.44))}
+#vp-required-image-caption{position:absolute;left:100px;top:830px;width:880px;color:#fff;font:700 28px/1.35 "Be Vietnam Pro",Inter,sans-serif;text-shadow:0 2px 18px rgba(0,0,0,.55);opacity:.84;overflow:visible}
+</style>`;
+  const layer = `<div id="vp-required-image-layer" data-required-image="true">
+      <img src="${escapeAttr(selected.src)}" alt="${escapeAttr(label)}">
+      <div id="vp-required-image-caption">${escapeHtml(label)}</div>
+    </div>`;
 
-  const t0 = Date.now();
-  const { result } = await callAI({ prompt, isJson: false, keys, onLog });
-  let html = result.trim();
-  if (!html.toLowerCase().includes('<!doctype')) {
-    html = html.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
+  let out = html;
+  out = out.replace(/<\/head>/i, `${style}\n</head>`);
+  return out.replace(/(<div\b(?=[^>]*\bid=["']stage["'])[^>]*>)/i, `$1\n    ${layer}`);
+}
+
+function ensureAIHyperframesMarkers(html, scene, durationSec) {
+  const compositionId = `scene-${safeId(scene?.stt ?? 'x')}`;
+  let out = html;
+  const stageMatch = out.match(/<div\b(?=[^>]*\bid=["']stage["'])[^>]*>/i);
+  if (!stageMatch) return out;
+  let tag = stageMatch[0];
+  tag = upsertHtmlAttr(tag, 'data-vp-html-version', 'hyperframes-ai-v1');
+  tag = upsertHtmlAttr(tag, 'data-composition-id', compositionId);
+  tag = upsertHtmlAttr(tag, 'data-width', '1080');
+  tag = upsertHtmlAttr(tag, 'data-height', '1920');
+  tag = upsertHtmlAttr(tag, 'data-start', '0');
+  tag = upsertHtmlAttr(tag, 'data-duration', durationSec.toFixed(3));
+  out = out.replace(stageMatch[0], tag);
+  if (!/<meta\s+name=["']video-pipeline-html["']/i.test(out)) {
+    out = out.replace(/<head[^>]*>/i, match => `${match}\n<meta name="video-pipeline-html" content="hyperframes-ai-v1">`);
   }
-  const lines = html.split('\n').length;
-  const kb = (Buffer.byteLength(html, 'utf8') / 1024).toFixed(1);
-  onLog?.(`✓ Thumbnail: HTML ${lines} dòng (${kb} KB) | ${fmtMs(Date.now() - t0)}`);
-  return html;
+  return out;
+}
+
+function upsertHtmlAttr(tag, name, value) {
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`\\s${escapedName}\\s*=\\s*(?:"[^"]*"|'[^']*'|[^\\s>]+)`, 'i');
+  const attr = ` ${name}="${escapeAttr(value)}"`;
+  if (re.test(tag)) return tag.replace(re, attr);
+  return tag.replace(/>$/, `${attr}>`);
+}
+
+function injectFreeformSfx(html, scene, durationSec) {
+  const cues = normalizeSfxPlan(scene?.sfxPlan || []);
+  if (!cues.length) return html;
+  const existing = new Set(
+    Array.from(html.matchAll(/<audio\b[^>]*data-sfx-key=(?:"([^"]*)"|'([^']*)')[^>]*>/gi))
+      .map(match => match[1] || match[2])
+  );
+  const tags = cues.map((cue, index) => {
+    if (existing.has(cue.id)) return '';
+    const start = clamp(resolveCueStartSec(cue, scene, index, cues.length, durationSec), 0, Math.max(0, durationSec - 0.05));
+    const clipDuration = clamp(getSfxDurationSec(cue.file, 0.5), 0.05, 10);
+    const end = Math.min(durationSec, start + clipDuration);
+    const effectiveDuration = Math.max(0.05, end - start);
+    const trackIndex = 4 + index;
+    return `<audio id="sfx-ai-${safeId(cue.id)}-${index}"
+      data-sfx-template="ai-freeform"
+      data-sfx-key="${escapeAttr(cue.id)}"
+      data-start="${start.toFixed(3)}"
+      data-end="${end.toFixed(3)}"
+      data-duration="${effectiveDuration.toFixed(3)}"
+      data-layer="${trackIndex}"
+      data-track-index="${trackIndex}"
+      data-volume="${clamp(cue.volume, 0, 0.85).toFixed(2)}"
+      preload="auto"
+      src="/assets/sfx/${escapeAttr(cue.file)}"></audio>`;
+  }).filter(Boolean);
+  if (!tags.length) return html;
+  return html.replace(/(<div\b(?=[^>]*\bid=["']stage["'])[^>]*>)/i, `$1\n    ${tags.join('\n    ')}`);
+}
+
+function resolveCueStartSec(cue, scene, index, total, durationSec) {
+  const phraseStart = findPhraseStartSec(cue?.timingPhrase, scene?.wordTimings);
+  if (Number.isFinite(phraseStart)) return phraseStart;
+  if (Number.isFinite(Number(cue?.startSec))) return Number(cue.startSec);
+  const step = durationSec / Math.max(2, total + 1);
+  return 0.15 + (index * step);
+}
+
+function findPhraseStartSec(phrase, wordTimings = []) {
+  const wanted = normalizeSearchText(phrase).split(' ').filter(Boolean);
+  if (!wanted.length) return NaN;
+  const words = (Array.isArray(wordTimings) ? wordTimings : [])
+    .map(item => ({
+      word: normalizeSearchText(item?.word || item?.text || ''),
+      start: Number(item?.start),
+    }))
+    .filter(item => item.word && Number.isFinite(item.start));
+  for (let i = 0; i <= words.length - wanted.length; i += 1) {
+    const chunk = words.slice(i, i + wanted.length).map(item => item.word);
+    if (wanted.every((word, idx) => chunk[idx] === word)) return words[i].start;
+  }
+  return NaN;
+}
+
+function normalizeSearchText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function safeId(value) {
+  return String(value ?? 'x').replace(/[^a-zA-Z0-9_-]/g, '-').replace(/-+/g, '-').slice(0, 60) || 'x';
+}
+
+function escapeAttr(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function clamp(value, min, max) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, n));
 }

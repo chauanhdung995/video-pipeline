@@ -1,0 +1,66 @@
+{
+  "template": "image-background-hero",
+  "description": "Full-screen Serper image background with Ken Burns motion and concise title overlay.",
+  "templateData": {
+    "kicker": "Bối cảnh",
+    "title": "Tiêu đề chính trên ảnh",
+    "subtitle": "Một câu ngắn giải thích vì sao hình ảnh này quan trọng",
+    "source": "",
+    "imageSearch": {
+      "q": "\"bitcoin adoption\" OR \"crypto payment\" chart -logo -icon",
+      "intent": "Find a high-resolution crop-safe image that can work as a full-screen vertical background.",
+      "orientation": "portrait",
+      "prefer": [
+        "bitcoin",
+        "crypto payment",
+        "editorial"
+      ],
+      "avoid": [
+        "logo",
+        "icon",
+        "clipart",
+        "stock"
+      ]
+    },
+    "image": {
+      "title": "",
+      "src": "",
+      "width": 0,
+      "height": 0,
+      "alt": ""
+    },
+    "background": {
+      "type": "image",
+      "src": "",
+      "fit": "cover",
+      "colors": [
+        "#0f172a",
+        "#2563eb"
+      ],
+      "opacity": 0.12
+    },
+    "overlay": {
+      "opacity": 0.56
+    },
+    "appearanceOrder": [
+      "image",
+      "kicker",
+      "title",
+      "subtitle"
+    ],
+    "timingPhrases": {
+      "title": "cụm tiêu đề chính",
+      "subtitle": "cụm giải thích"
+    },
+    "sfx": {
+      "image": 0.08,
+      "title": "cụm tiêu đề chính"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "template": "hook",
+  "description": "Opening hook with one bold headline and one support line.",
+  "templateData": {
+    "headline": "Câu mở gây chú ý",
+    "subhead": "Một ý phụ ngắn",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "headline",
+      "subhead"
+    ],
+    "timingPhrases": {
+      "headline": "cụm hook chính",
+      "subhead": "cụm bổ trợ"
+    },
+    "sfx": {
+      "intro": 0.08,
+      "headline": "cụm hook chính"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

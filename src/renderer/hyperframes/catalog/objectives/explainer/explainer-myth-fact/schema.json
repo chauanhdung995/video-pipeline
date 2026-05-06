@@ -1,0 +1,44 @@
+{
+  "template": "explainer-myth-fact",
+  "description": "Explainer scene for correcting a misconception with a clear myth/fact contrast.",
+  "templateData": {
+    "title": "Hiểu lầm phổ biến",
+    "myth": {
+      "label": "Hiểu lầm",
+      "title": "Phí cao nghĩa là mạng hỏng",
+      "detail": "Cách nói này bỏ qua cơ chế ưu tiên."
+    },
+    "fact": {
+      "label": "Sự thật",
+      "title": "Phí cao nghĩa là nhu cầu đang chen hàng",
+      "detail": "Người dùng trả nhiều hơn để được xử lý trước."
+    },
+    "takeaway": "Đừng nhìn một con số đơn lẻ; hãy nhìn cơ chế tạo ra nó.",
+    "background": {
+      "type": "gradient",
+      "colors": ["#08111f", "#15243a"],
+      "accent": "#22d3ee",
+      "mint": "#34d399",
+      "opacity": 0.16
+    },
+    "blockRefs": ["flash-through-white", "shimmer-sweep", "macos-notification"],
+    "appearanceOrder": ["title", "myth", "fact", "takeaway"],
+    "timingPhrases": {
+      "title": "hiểu lầm",
+      "myth": "mạng hỏng",
+      "fact": "chen hàng",
+      "takeaway": "cơ chế tạo ra"
+    },
+    "sfx": {
+      "myth": "mạng hỏng",
+      "fact": "chen hàng",
+      "takeaway": "cơ chế tạo ra"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

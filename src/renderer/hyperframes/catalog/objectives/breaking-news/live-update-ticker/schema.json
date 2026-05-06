@@ -1,0 +1,62 @@
+{
+  "template": "live-update-ticker",
+  "description": "Mẫu cập nhật trực tiếp: headline chính và ticker các cập nhật mới nhất.",
+  "templateData": {
+    "kicker": "LIVE",
+    "headline": "Khu vực trung tâm mở lại một phần",
+    "updates": [
+      {
+        "time": "16:05",
+        "text": "Một số tuyến chính đã hoạt động trở lại."
+      },
+      {
+        "time": "16:20",
+        "text": "Tuyến phụ vẫn được khuyến cáo hạn chế di chuyển."
+      },
+      {
+        "time": "16:45",
+        "text": "Cơ quan chức năng chuẩn bị phát thông báo tiếp theo."
+      }
+    ],
+    "nextUpdate": "Cập nhật tiếp theo dự kiến 17:00",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#05070d",
+        "#101827",
+        "#dc2626",
+        "#22d3ee"
+      ],
+      "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+      "opacity": 0.16
+    },
+    "blockRefs": [
+      "macos-notification",
+      "whip-pan",
+      "shimmer-sweep"
+    ],
+    "appearanceOrder": [
+      "headline",
+      "update1",
+      "update2",
+      "nextUpdate"
+    ],
+    "timingPhrases": {
+      "headline": "mở lại một phần",
+      "update1": "tuyến chính",
+      "update2": "tuyến phụ",
+      "nextUpdate": "thông báo tiếp theo"
+    },
+    "sfx": {
+      "alert": 0.04,
+      "update1": "tuyến chính",
+      "update2": "tuyến phụ"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

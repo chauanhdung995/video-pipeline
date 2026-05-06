@@ -6,9 +6,6 @@ import path from 'path';
 
 const AR_CONFIGS = {
   '9:16': { w: 1080, h: 1920 },
-  '16:9': { w: 1920, h: 1080 },
-  '1:1':  { w: 1080, h: 1080 },
-  '4:5':  { w: 1080, h: 1350 },
 };
 const FPS = 30;
 const fmtMs = ms => ms < 60000 ? `${(ms/1000).toFixed(1)}s` : `${Math.floor(ms/60000)}m${Math.round((ms%60000)/1000)}s`;
@@ -29,8 +26,8 @@ function getLaunchOptions() {
  * @param {number} durationSec
  * @param {(msg:string)=>void} [onLog]
  */
-export async function renderSceneVideo(htmlPath, outputVideo, durationSec, onLog, outputAspectRatio = '9:16') {
-  const { w: W, h: H } = AR_CONFIGS[outputAspectRatio] || AR_CONFIGS['9:16'];
+export async function renderSceneVideo(htmlPath, outputVideo, durationSec, onLog) {
+  const { w: W, h: H } = AR_CONFIGS['9:16'];
   const totalFrames = Math.ceil(durationSec * FPS);
   const sceneName   = path.basename(htmlPath, '.html');
   const framesDir   = path.join(path.dirname(outputVideo), `frames_${sceneName}`);
@@ -155,52 +152,6 @@ export async function renderSceneVideo(htmlPath, outputVideo, durationSec, onLog
 
     fs.rmSync(framesDir, { recursive: true, force: true });
     onLog?.(`✓ Render cảnh xong | tổng ${fmtMs(Date.now() - t0)}`);
-  } finally {
-    if (browser.connected) await browser.close();
-  }
-}
-
-export async function renderHtmlStill(htmlPath, outputImage, onLog, outputAspectRatio = '9:16', atMs = 1800) {
-  const { w: W, h: H } = AR_CONFIGS[outputAspectRatio] || AR_CONFIGS['9:16'];
-  const t0 = Date.now();
-
-  onLog?.(`Puppeteer: khởi động trình duyệt để chụp thumbnail ${W}x${H}`);
-  const browser = await puppeteer.launch(getLaunchOptions());
-
-  try {
-    const page = await browser.newPage();
-    await page.setViewport({ width: W, height: H, deviceScaleFactor: 1 });
-
-    await page.evaluateOnNewDocument(() => {
-      window.__t = 0;
-      window.__rafId = 0;
-      window.__rafs = [];
-      performance.now = () => window.__t;
-      const _origDateNow = Date.now.bind(Date);
-      window.__startDate = _origDateNow();
-      Date.now = () => window.__startDate + window.__t;
-      window.requestAnimationFrame = cb => { const id = ++window.__rafId; window.__rafs.push({ id, cb }); return id; };
-      window.cancelAnimationFrame = id => { window.__rafs = window.__rafs.filter(r => r.id !== id); };
-    });
-
-    const absHtmlPath = path.resolve(htmlPath);
-    if (!fs.existsSync(absHtmlPath)) throw new Error(`HTML file not found: ${absHtmlPath}`);
-
-    await page.goto(`file://${absHtmlPath}`, { waitUntil: 'networkidle0', timeout: 30000 }).catch(async () => {
-      await page.goto(`file://${absHtmlPath}`, { waitUntil: 'load', timeout: 30000 });
-    });
-    await page.waitForFunction(() => document.fonts.ready, { timeout: 5000 }).catch(() => {});
-
-    await page.evaluate(t => {
-      window.__t = t;
-      const rafs = window.__rafs.splice(0);
-      rafs.forEach(({ cb }) => { try { cb(t); } catch {} });
-    }, atMs);
-
-    await new Promise(r => setTimeout(r, 150));
-    fs.mkdirSync(path.dirname(outputImage), { recursive: true });
-    await page.screenshot({ path: outputImage, type: 'jpeg', quality: 92, omitBackground: false });
-    onLog?.(`✓ Đã chụp thumbnail | ${(fs.statSync(outputImage).size / 1024).toFixed(0)} KB | ${fmtMs(Date.now() - t0)}`);
   } finally {
     if (browser.connected) await browser.close();
   }

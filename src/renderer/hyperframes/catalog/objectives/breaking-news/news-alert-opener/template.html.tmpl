@@ -1,0 +1,52 @@
+<!--
+Template: news-alert-opener
+Description: Mẫu mở đầu tin nóng: badge khẩn, headline lớn, subhead và metadata cập nhật.
+
+Runtime renderer: src/renderer/hyperframesTemplateSystem.js
+Chosen HyperFrames blocks/components: macos-notification, flash-through-white, shimmer-sweep
+SFX timing keys only; fixed files are mapped in renderer TEMPLATE_SFX.
+
+Required templateData sample:
+{
+  "kicker": "TIN NÓNG",
+  "headline": "Quyết định mới vừa được công bố",
+  "subhead": "Tác động có thể xuất hiện ngay trong hôm nay",
+  "timestamp": "Cập nhật 14:30",
+  "location": "Hà Nội",
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#05070d",
+      "#101827",
+      "#dc2626",
+      "#22d3ee"
+    ],
+    "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+    "opacity": 0.16
+  },
+  "blockRefs": [
+    "macos-notification",
+    "flash-through-white",
+    "shimmer-sweep"
+  ],
+  "appearanceOrder": [
+    "alert",
+    "headline",
+    "subhead",
+    "timestamp"
+  ],
+  "timingPhrases": {
+    "headline": "quyết định mới",
+    "subhead": "tác động",
+    "timestamp": "hôm nay"
+  },
+  "sfx": {
+    "alert": 0.05,
+    "headline": "quyết định mới",
+    "timestamp": "hôm nay"
+  }
+}
+-->
+<section class="scene-template-news-alert-opener" data-template="news-alert-opener">
+  <pre data-template-data>{{templateData}}</pre>
+</section>

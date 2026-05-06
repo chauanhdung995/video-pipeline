@@ -1,6 +1,3 @@
 {
-  "logoPath": "",
-  "brandDir": "/path/to/your/uploads/brand-assets",
-  "musicDir": "/path/to/your/uploads/music",
-  "sfxDir": "/path/to/your/uploads/sfx"
+  "logoPath": ""
 }

@@ -1,0 +1,74 @@
+<!--
+Template: visual-evidence
+Description: Mẫu trích bằng chứng hình ảnh: khung ảnh lớn, nhãn nguồn, caption và lưu ý kiểm chứng.
+
+Runtime renderer: src/renderer/hyperframesTemplateSystem.js
+Chosen HyperFrames blocks/components: macos-notification, image-inset-card, shimmer-sweep
+SFX timing keys only; fixed files are mapped in renderer TEMPLATE_SFX.
+
+Required templateData sample:
+{
+  "kicker": "BẰNG CHỨNG HÌNH ẢNH",
+  "title": "Ảnh từ khu vực hiện trường",
+  "caption": "Khu vực được phong tỏa trong thời gian lực lượng chức năng kiểm tra.",
+  "source": "Ảnh minh họa cho demo - cần thay bằng ảnh đã kiểm chứng",
+  "status": "Đang đối chiếu nguồn",
+  "imageSearch": {
+    "q": "breaking news scene police cordon city street verified photo",
+    "intent": "Ảnh hiện trường hoặc ảnh tư liệu phù hợp với tin nóng, ưu tiên ảnh rõ bối cảnh và không có logo lớn.",
+    "orientation": "portrait",
+    "prefer": [
+      "scene",
+      "street",
+      "official",
+      "photojournalism"
+    ],
+    "avoid": [
+      "logo",
+      "icon",
+      "cartoon",
+      "low resolution"
+    ]
+  },
+  "image": {
+    "title": "Khung bằng chứng minh họa",
+    "src": "",
+    "width": 0,
+    "height": 0,
+    "alt": "Khung ảnh bằng chứng minh họa"
+  },
+  "background": {
+    "type": "gradient",
+    "colors": [
+      "#05070d",
+      "#101827",
+      "#dc2626",
+      "#22d3ee"
+    ],
+    "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+    "opacity": 0.16
+  },
+  "blockRefs": [
+    "macos-notification",
+    "image-inset-card",
+    "shimmer-sweep"
+  ],
+  "appearanceOrder": [
+    "image",
+    "caption",
+    "source"
+  ],
+  "timingPhrases": {
+    "image": "hình ảnh tại hiện trường",
+    "caption": "khu vực đã được phong tỏa",
+    "source": "đối chiếu thời gian"
+  },
+  "sfx": {
+    "image": "hình ảnh tại hiện trường",
+    "caption": "khu vực đã được phong tỏa"
+  }
+}
+-->
+<section class="scene-template-visual-evidence" data-template="visual-evidence">
+  <pre data-template-data>{{templateData}}</pre>
+</section>

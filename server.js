@@ -4,25 +4,140 @@ import { WebSocketServer } from 'ws';
 import http from 'http';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import multer from 'multer';
 
-import { pathToFileURL } from 'url';
-import { runPipeline, resumePipeline, listSessions, getSession, renderSingleScene, concatFinalVideo, renderProjectThumbnail, regenSceneVoiceAndHTML } from './src/pipeline.js';
-import { saveState, loadState, triggerRender } from './src/utils/state.js';
-import { generateSceneHTML, generateThumbnailHTML, editSceneHTML, editThumbnailHTML } from './src/agents/sceneAgent.js';
-import { normalizeUserScriptInput } from './src/agents/scriptAgent.js';
+import { runPipeline, resumePipeline, listSessions, getSession, renderSingleScene, concatFinalVideo, regenSceneVoiceAndHTML } from './src/pipeline.js';
+import { saveState, loadState, triggerRender, logEvent } from './src/utils/state.js';
+import { generateSceneHTML, editSceneHTML } from './src/agents/sceneAgent.js';
+import { getTemplatesForObjective, listVideoObjectives, normalizeVideoObjective } from './src/renderer/hyperframesTemplateSchemas.js';
+import { getLarVoiceSampleStatus, listLarVoiceVoices } from './src/agents/ttsAgent.js';
 import {
   listProjects, getProject, updateProject, upsertScene, getScene,
   importExistingSessions, syncFromState, deleteProject, deleteAllProjects,
-  listStyles, getStyle, createStyle, deleteStyle,
 } from './src/db/index.js';
-import { DEFAULT_STYLE_GUIDE } from './src/agents/sceneAgent.js';
 import { getSettings, updateSettings } from './src/utils/settings.js';
 import { SESS_DIR, UPLOADS_DIR, ensureDataDirs } from './src/utils/paths.js';
+import { SERPER_SCRAPE_API_KEY } from './src/config/apiKeys.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 ensureDataDirs();
+
+function markInterruptedRunningSessions() {
+  if (!fs.existsSync(SESS_DIR)) return;
+  for (const id of fs.readdirSync(SESS_DIR)) {
+    const state = loadState(id);
+    if (state?.status !== 'running') continue;
+    state.status = 'error';
+    state.lastError = 'Pipeline bị ngắt khi server dừng. Bấm Tiếp tục để chạy tiếp từ bước còn thiếu.';
+    state.interruptedAt = Date.now();
+    saveState(id, state);
+    syncFromState(id, state);
+    logEvent(id, {
+      step: 0,
+      msg: 'Pipeline bị ngắt do server restart; có thể bấm Tiếp tục để chạy tiếp.',
+      detail: true,
+    });
+    console.warn(`[Startup] Marked interrupted running session ${id} as resumable`);
+  }
+}
+
+function safeUploadName(originalName, fallback = 'upload') {
+  const raw = path.basename(String(originalName || fallback));
+  const ext = path.extname(raw).toLowerCase().replace(/[^a-z0-9.]/g, '') || '';
+  const base = raw.slice(0, raw.length - ext.length)
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/_{2,}/g, '_')
+    .slice(0, 60) || fallback;
+  return `${base}${ext}`;
+}
+
+function uniqueUploadName(dir, originalName, fallback = 'upload') {
+  const safe = safeUploadName(originalName, fallback);
+  const ext = path.extname(safe);
+  const base = safe.slice(0, safe.length - ext.length) || fallback;
+  let candidate = safe;
+  let i = 2;
+  while (fs.existsSync(path.join(dir, candidate))) {
+    candidate = `${base}_${i}${ext}`;
+    i += 1;
+  }
+  return candidate;
+}
+
+function uploadDisplayName(originalName, filename) {
+  const source = String(originalName || filename || 'uploaded image');
+  return path.basename(source, path.extname(source)).replace(/[_-]+/g, ' ').trim() || 'uploaded image';
+}
+
+function parseJsonField(value) {
+  if (value && typeof value === 'object') return value;
+  const raw = String(value || '').trim();
+  if (!raw) return undefined;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+}
+
+function parseBooleanField(value, fallback = true) {
+  if (value === undefined || value === null || value === '') return fallback;
+  if (value === false || value === 'false' || value === '0' || value === 0) return false;
+  return true;
+}
+
+function buildStartOptions(body = {}, uploadedImages = []) {
+  const {
+    topic,
+    larvoiceVoiceId,
+    videoDurationSec,
+    ttsSpeed,
+    videoObjective,
+    useTemplateMode,
+  } = body;
+  const trimmedTopic = String(topic || '').trim();
+  const safeUseTemplateMode = parseBooleanField(useTemplateMode, true);
+  const safeVideoObjective = normalizeVideoObjective(videoObjective);
+  const allowedTemplates = getTemplatesForObjective(safeVideoObjective);
+  if (safeUseTemplateMode && !allowedTemplates.length) {
+    return { error: 'Mục tiêu video đã chọn chưa có template nào trong catalog', status: 400 };
+  }
+  const allowedVideoDurations = new Set([60, 120, 180, 240, 300]);
+  const safeVideoDurationSec = allowedVideoDurations.has(Number(videoDurationSec)) ? Number(videoDurationSec) : 120;
+  const safeTTSSpeed = Math.max(0.5, Math.min(2.0, Number(ttsSpeed) || 1.0));
+  const safeLarVoiceVoiceId = Number(larvoiceVoiceId) || 1;
+  if (!trimmedTopic) return { error: 'Thiếu chủ đề video', status: 400 };
+
+  const backgroundMusic = parseJsonField(body.backgroundMusic) || body.backgroundMusic;
+  const safeBackgroundMusic = backgroundMusic?.filename ? {
+    name: String(backgroundMusic.name || backgroundMusic.filename).slice(0, 120),
+    filename: safeUploadName(backgroundMusic.filename, 'background_music'),
+  } : undefined;
+
+  return {
+    topic: trimmedTopic,
+    larvoiceVoiceId: safeLarVoiceVoiceId,
+    backgroundMusic: safeBackgroundMusic,
+    videoObjective: safeVideoObjective,
+    useTemplateMode: safeUseTemplateMode,
+    enableSubtitles: parseBooleanField(body.enableSubtitles, true),
+    videoDurationSec: safeVideoDurationSec,
+    ttsSpeed: safeTTSSpeed,
+    uploadedImages,
+  };
+}
+
+function loadSceneWordTimings(sessionId, stt) {
+  const wordsPath = path.join(SESS_DIR, sessionId, 'srt', `${stt}.words.json`);
+  if (!fs.existsSync(wordsPath)) return [];
+  try {
+    const parsed = JSON.parse(fs.readFileSync(wordsPath, 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 const logoStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
@@ -33,15 +148,60 @@ const logoStorage = multer.diskStorage({
 });
 const upload = multer({ storage: logoStorage });
 
-const assetStorage = multer.diskStorage({
+const musicStorage = multer.diskStorage({
   destination: (req, _file, cb) => {
-    const dir = path.join(SESS_DIR, req.params.id, 'assets');
+    const dir = path.join(SESS_DIR, req.params.id, 'music');
     fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
-  filename: (_req, file, cb) => cb(null, file.originalname),
+  filename: (_req, file, cb) => cb(null, safeUploadName(file.originalname, 'background_music')),
 });
-const assetUpload = multer({ storage: assetStorage, limits: { fileSize: 100 * 1024 * 1024 } });
+const musicUpload = multer({ storage: musicStorage, limits: { fileSize: 100 * 1024 * 1024 } });
+
+function ensureStartSessionId(req) {
+  if (!req._startSessionId) req._startSessionId = `sess_${Date.now()}`;
+  return req._startSessionId;
+}
+
+const IMAGE_UPLOAD_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+const startImageStorage = multer.diskStorage({
+  destination: (req, _file, cb) => {
+    const sessionId = ensureStartSessionId(req);
+    const dir = path.join(SESS_DIR, sessionId, 'images', 'uploaded');
+    fs.mkdirSync(dir, { recursive: true });
+    req._imageUploadDir = dir;
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const dir = req._imageUploadDir || path.join(SESS_DIR, ensureStartSessionId(req), 'images', 'uploaded');
+    cb(null, uniqueUploadName(dir, file.originalname, 'uploaded_image'));
+  },
+});
+const startImageUpload = multer({
+  storage: startImageStorage,
+  limits: { fileSize: 25 * 1024 * 1024, files: 20 },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    if (!IMAGE_UPLOAD_EXTS.has(ext)) {
+      return cb(new Error('Chỉ hỗ trợ ảnh .jpg, .jpeg, .png, .webp, .gif'));
+    }
+    cb(null, true);
+  },
+});
+
+function uploadedImagesFromFiles(files = [], sessionId) {
+  return (Array.isArray(files) ? files : []).map(file => ({
+    title: uploadDisplayName(file.originalname, file.filename),
+    name: uploadDisplayName(file.originalname, file.filename),
+    originalName: file.originalname,
+    filename: file.filename,
+    src: `/sessions/${encodeURIComponent(sessionId)}/images/uploaded/${encodeURIComponent(file.filename)}`,
+    path: file.path,
+    width: 0,
+    height: 0,
+    source: 'upload',
+  }));
+}
 
 const app    = express();
 const server = http.createServer(app);
@@ -49,10 +209,8 @@ const wss    = new WebSocketServer({ server });
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 app.use('/sessions', express.static(SESS_DIR));
-
-// Serve brand specificities (hardcoded folder)
-app.use('/brand-specificities', express.static(path.join(__dirname, 'brand-specificities')));
 
 const clients = new Set();
 wss.on('connection', ws => {
@@ -69,6 +227,21 @@ function logProgress(sessionId, step, msg, extra = {}) {
   broadcast({ sessionId, type: 'progress', step, msg, ...extra });
 }
 
+function normalizeHttpUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) throw new Error('Thiếu URL');
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    throw new Error('URL không hợp lệ');
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error('URL phải bắt đầu bằng http:// hoặc https://');
+  }
+  return parsed.href;
+}
+
 // ─── Settings endpoints ───────────────────────────────────────────────────────
 
 app.get('/api/settings', (_req, res) => {
@@ -78,6 +251,80 @@ app.get('/api/settings', (_req, res) => {
     logoName: settings.logoPath ? path.basename(settings.logoPath) : '',
     logoExists: settings.logoPath ? fs.existsSync(settings.logoPath) : false,
   });
+});
+
+app.get('/api/larvoice/voices', async (_req, res) => {
+  try {
+    const voices = await listLarVoiceVoices();
+    res.json({
+      voices: voices.map(voice => ({
+        ...voice,
+        sample: getLarVoiceSampleStatus(voice.id),
+      })),
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/larvoice/sample', async (req, res) => {
+  try {
+    const larvoiceVoiceId = Number(req.body?.larvoiceVoiceId);
+    if (!Number.isFinite(larvoiceVoiceId)) return res.status(400).json({ error: 'Thiếu LarVoice Voice ID' });
+    const sample = getLarVoiceSampleStatus(larvoiceVoiceId);
+    if (sample.status !== 'ready') {
+      const code = sample.status === 'failed' ? 409 : 404;
+      return res.status(code).json({ error: sample.error, sample });
+    }
+    res.json(sample);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/video-objectives', (_req, res) => {
+  res.json({ objectives: listVideoObjectives() });
+});
+
+app.post('/api/crawl-url', async (req, res) => {
+  let url;
+  try {
+    url = normalizeHttpUrl(req.body?.url);
+  } catch (error) {
+    return res.status(400).json({ error: error.message });
+  }
+
+  try {
+    const scrapeRes = await fetch('https://scrape.serper.dev', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': SERPER_SCRAPE_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url }),
+      signal: AbortSignal.timeout(60000),
+    });
+    const raw = await scrapeRes.text();
+    let data;
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch {
+      return res.status(502).json({ error: `Scrape API trả về dữ liệu không phải JSON: ${raw.slice(0, 200)}` });
+    }
+    if (!scrapeRes.ok) {
+      const msg = data?.message || data?.error || raw || `HTTP ${scrapeRes.status}`;
+      return res.status(scrapeRes.status).json({ error: String(msg).replaceAll(SERPER_SCRAPE_API_KEY, '***').slice(0, 500) });
+    }
+
+    const text = String(data?.text || '').trim();
+    if (!text) return res.status(502).json({ error: 'Scrape API không trả về trường text' });
+    res.json({ text });
+  } catch (error) {
+    const message = error?.name === 'TimeoutError'
+      ? 'Scrape API quá thời gian chờ'
+      : String(error?.message || error).replaceAll(SERPER_SCRAPE_API_KEY, '***');
+    res.status(500).json({ error: message });
+  }
 });
 
 app.post('/api/settings/logo', upload.single('logo'), (req, res) => {
@@ -99,204 +346,56 @@ app.delete('/api/settings/logo', (_req, res) => {
   });
 });
 
-
-// ─── Style endpoints ──────────────────────────────────────────────────────────
-
-const STYLE_GEN_PROMPT = (domain, exampleStyleGuide) => `Tạo style guide cho video ngắn (TikTok/Reels/Shorts) với chủ đề lĩnh vực: "${domain}"
-
-Style guide được dùng để hướng dẫn AI tạo HTML animation cảnh video. Cần bao gồm đầy đủ 7 section theo thứ tự:
-1. MÀU - bảng màu primary + gradient phù hợp lĩnh vực
-2. FONT SIZE - gợi ý font và kích thước px
-3. TIẾNG VIỆT — BẮT BUỘC (giữ nguyên rules)
-4. TEXT EFFECT PRESETS - các hiệu ứng text với màu đã chọn
-5. DOMAIN ICONS/EMOJIS - SVG inline + emoji đặc thù lĩnh vực
-6. AMBIENT GỢI Ý - tsParticles/bokeh phù hợp
-7. MAPPING CONCEPT → VISUAL - mapping cụ thể cho lĩnh vực
-
-Ví dụ về style guide cho lĩnh vực "Tài chính / Crypto":
----
-${exampleStyleGuide}
----
-
-Bây giờ hãy tạo style guide tương tự cho lĩnh vực: "${domain}"
-
-Trả về JSON hợp lệ với đúng 3 trường:
-{
-  "name": "Tên phong cách ngắn gọn (≤ 30 ký tự)",
-  "description": "Mô tả 1 câu về phong cách và sự phù hợp",
-  "styleGuide": "... nội dung text đầy đủ 7 section (KHÔNG lồng JSON, KHÔNG dùng backtick)..."
-}
-
-TIẾNG VIỆT section BẮT BUỘC phải có nguyên văn:
-• Mọi text element PHẢI dùng class="txt" (đã định nghĩa trong CSS template).
-• KHÔNG dùng overflow:hidden trên container chứa text — dấu tiếng Việt phía trên (ắ, ế, ổ...) sẽ bị cắt.
-• Nếu dùng inline style: thêm line-height:1.5;overflow:visible;padding-top:0.15em.
-• Tránh đặt text sát phần tử khác phía trên — để margin-top tối thiểu 20px để dấu không bị che.
-
-CHỈ TRẢ VỀ JSON, KHÔNG GIẢI THÍCH, KHÔNG MARKDOWN.`;
-
-app.get('/api/styles', (_req, res) => {
-  res.json(listStyles());
-});
-
-app.post('/api/styles/generate', async (req, res) => {
-  const { domain, aiProvider, chato1Keys: c1Keys, geminiKeys: gmKeys, openaiKeys: oaKeys } = req.body;
-  if (!domain?.trim()) return res.status(400).json({ error: 'Thiếu domain' });
-
-  const keys = {
-    aiProvider: aiProvider || 'chato1',
-    chato1: c1Keys || [],
-    geminiKeys: gmKeys || [],
-    openaiKeys: oaKeys || [],
-  };
-  if (keys.aiProvider === 'chato1' && !keys.chato1.length)
-    return res.status(400).json({ error: 'Thiếu Chato1 API keys' });
-  if (keys.aiProvider === 'gemini' && !keys.geminiKeys.length)
-    return res.status(400).json({ error: 'Thiếu Gemini API keys' });
-  if (keys.aiProvider === 'openai' && !keys.openaiKeys.length)
-    return res.status(400).json({ error: 'Thiếu OpenAI API keys' });
-
-  try {
-    const { callAI } = await import('./src/services/aiRouter.js');
-    const prompt = STYLE_GEN_PROMPT(domain.trim(), DEFAULT_STYLE_GUIDE);
-    const { result } = await callAI({ prompt, isJson: true, keys });
-    if (!result.name || !result.styleGuide)
-      return res.status(500).json({ error: 'AI trả về thiếu trường name/styleGuide' });
-
-    const id = createStyle({
-      name: result.name,
-      description: result.description || '',
-      styleGuide: result.styleGuide,
-    });
-    res.json({ id, name: result.name, description: result.description || '' });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.delete('/api/styles/:id', (req, res) => {
-  const id = Number(req.params.id);
-  if (id === 1) return res.status(400).json({ error: 'Không thể xóa phong cách mặc định' });
-  deleteStyle(id);
-  res.json({ ok: true });
-});
-
 // ─── Pipeline endpoints (keep for start/resume) ───────────────────────────────
 
-app.post('/api/projects/:id/upload-assets', assetUpload.array('files'), (req, res) => {
-  res.json({ ok: true, count: req.files?.length ?? 0 });
+app.post('/api/projects/:id/upload-music', musicUpload.single('music'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Không có file nhạc' });
+  res.json({
+    ok: true,
+    filename: req.file.filename,
+    path: req.file.path,
+  });
 });
 
 app.post('/api/start', async (req, res) => {
-  const {
-    topic,
-    scriptJson,
-    chato1Keys,
-    openaiKeys,
-    ttsProvider,
-    lucylabKey,
-    voiceId,
-    vbeeKey,
-    vbeeAppId,
-    vbeeVoiceCode,
-    projectAssets,
-    outputAspectRatio,
-    aiProvider,
-    geminiKeys,
-    enableSubtitles,
-    styleId,
-    videoDurationSec,
-    sceneDurationSec,
-    ttsSpeed,
-  } = req.body;
-  const provider = aiProvider || 'chato1';
-  const resolvedTTSProvider = ttsProvider || 'lucylab';
-  const trimmedTopic = String(topic || '').trim();
-  let manualScript;
-  if (scriptJson != null && String(scriptJson).trim()) {
-    try {
-      manualScript = normalizeUserScriptInput(JSON.parse(String(scriptJson)));
-    } catch (error) {
-      return res.status(400).json({ error: `JSON kịch bản không hợp lệ: ${error.message}` });
-    }
-  }
-  const allowedVideoDurations = new Set([60, 120, 180, 240, 300]);
-  const safeVideoDurationSec = allowedVideoDurations.has(Number(videoDurationSec)) ? Number(videoDurationSec) : 120;
-  const sceneDurationRules = {
-    60:  [5, 7, 10],
-    120: [7, 10, 12, 15],
-    180: [5, 7, 10, 12, 15],
-    240: [10, 12, 15, 20],
-    300: [10, 12, 15, 20],
-  };
-  const allowedSceneDurations = sceneDurationRules[safeVideoDurationSec] || [7, 10, 12, 15];
-  const preferredSceneDuration = [15, 12, 10, 7, 5, 20].find(d => allowedSceneDurations.includes(d)) ?? allowedSceneDurations[0];
-  const requestedSceneDuration = Number(sceneDurationSec);
-  const safeSceneDurationSec = allowedSceneDurations.includes(requestedSceneDuration)
-    ? requestedSceneDuration
-    : preferredSceneDuration;
-  const safeTTSSpeed = Math.max(0.5, Math.min(2.0, Number(ttsSpeed) || 1.0));
-  if (!trimmedTopic && !manualScript) return res.status(400).json({ error: 'Thiếu topic hoặc JSON kịch bản' });
-  if (!manualScript && provider === 'chato1' && !chato1Keys?.length)
-    return res.status(400).json({ error: 'Thiếu Chato1 API keys' });
-  if (!manualScript && provider === 'gemini' && !geminiKeys?.length)
-    return res.status(400).json({ error: 'Thiếu Gemini API keys' });
-  if (!manualScript && provider === 'openai' && !openaiKeys?.length)
-    return res.status(400).json({ error: 'Thiếu OpenAI API keys' });
-  if (resolvedTTSProvider === 'lucylab' && !lucylabKey)
-    return res.status(400).json({ error: 'Thiếu LucyLab API key' });
-  if (resolvedTTSProvider === 'vbee' && !vbeeKey)
-    return res.status(400).json({ error: 'Thiếu Vbee API key' });
-  if (resolvedTTSProvider === 'vbee' && !vbeeAppId)
-    return res.status(400).json({ error: 'Thiếu Vbee Project ID' });
-  if (resolvedTTSProvider === 'vbee' && !vbeeVoiceCode)
-    return res.status(400).json({ error: 'Thiếu Vbee Voice ID' });
-
-  const styleRow = styleId ? getStyle(styleId) : null;
-  const styleGuide = styleRow?.style_guide ?? DEFAULT_STYLE_GUIDE;
-
   const sessionId = `sess_${Date.now()}`;
-
-  // Enrich asset metadata with predicted file:// URLs (files uploaded separately right after)
-  const enrichedAssets = (projectAssets || []).map(a => ({
-    ...a,
-    fileUrl: pathToFileURL(path.join(SESS_DIR, sessionId, 'assets', a.filename)).href,
-  }));
+  const options = buildStartOptions(req.body);
+  if (options.error) return res.status(options.status || 400).json({ error: options.error });
 
   res.json({ sessionId });
   runPipeline({
     sessionId,
-    topic: trimmedTopic || manualScript?.thumbnail?.title || 'Kịch bản thủ công',
-    script: manualScript?.scenes,
-    thumbnail: manualScript?.thumbnail,
-    chato1Keys,
-    openaiKeys: openaiKeys?.length ? openaiKeys : undefined,
-    ttsProvider: resolvedTTSProvider,
-    lucylabKey,
-    voiceId,
-    vbeeKey,
-    vbeeAppId,
-    vbeeVoiceCode,
-    projectAssets: enrichedAssets.length ? enrichedAssets : undefined,
-    outputAspectRatio: outputAspectRatio || '9:16',
-    aiProvider: provider,
-    geminiKeys: geminiKeys?.length ? geminiKeys : undefined,
-    enableSubtitles: enableSubtitles !== false,
-    styleGuide,
-    videoDurationSec: safeVideoDurationSec,
-    sceneDurationSec: safeSceneDurationSec,
-    ttsSpeed: safeTTSSpeed,
+    ...options,
   }).catch(e => {
     console.error(`[Pipeline Error] ${sessionId}:`, e);
     broadcast({ sessionId, type: 'error', msg: e.message });
   });
 });
 
+app.post('/api/start-with-images', (req, res) => {
+  startImageUpload.array('images', 20)(req, res, (uploadError) => {
+    if (uploadError) return res.status(400).json({ error: uploadError.message });
+    const sessionId = ensureStartSessionId(req);
+    const uploadedImages = uploadedImagesFromFiles(req.files, sessionId);
+    const options = buildStartOptions(req.body, uploadedImages);
+    if (options.error) return res.status(options.status || 400).json({ error: options.error });
+
+    res.json({ sessionId, uploadedImages });
+    runPipeline({
+      sessionId,
+      ...options,
+    }).catch(e => {
+      console.error(`[Pipeline Error] ${sessionId}:`, e);
+      broadcast({ sessionId, type: 'error', msg: e.message });
+    });
+  });
+});
+
 app.post('/api/resume/:id', async (req, res) => {
-  const { chato1Keys, openaiKeys, ttsProvider, lucylabKey, voiceId, vbeeKey, vbeeAppId, vbeeVoiceCode } = req.body;
+  const { larvoiceVoiceId } = req.body;
   const sessionId = req.params.id;
   res.json({ ok: true });
-  resumePipeline({ sessionId, chato1Keys, openaiKeys, ttsProvider, lucylabKey, voiceId, vbeeKey, vbeeAppId, vbeeVoiceCode }).catch(e => {
+  resumePipeline({ sessionId, larvoiceVoiceId }).catch(e => {
     broadcast({ sessionId, type: 'error', msg: e.message });
   });
 });
@@ -307,9 +406,9 @@ app.post('/api/projects/:id/resume', async (req, res) => {
   const state = loadState(sessionId);
   if (!state) return res.status(404).json({ error: 'Không tìm thấy dự án' });
   if (state.status === 'running') return res.status(409).json({ error: 'Pipeline đang chạy' });
-  const { chato1Keys, openaiKeys, geminiKeys, ttsProvider, lucylabKey, voiceId, vbeeKey, vbeeAppId, vbeeVoiceCode, ttsSpeed } = req.body || {};
+  const { larvoiceVoiceId, ttsSpeed } = req.body || {};
   res.json({ ok: true });
-  resumePipeline({ sessionId, chato1Keys, openaiKeys, geminiKeys, ttsProvider, lucylabKey, voiceId, vbeeKey, vbeeAppId, vbeeVoiceCode, ttsSpeed }).catch(e => {
+  resumePipeline({ sessionId, larvoiceVoiceId, ttsSpeed }).catch(e => {
     console.error(`[Resume Error] ${sessionId}:`, e.message);
     broadcast({ sessionId, type: 'error', msg: e.message });
   });
@@ -336,6 +435,11 @@ app.get('/api/projects', (_req, res) => res.json(listProjects()));
 app.get('/api/projects/:id', (req, res) => {
   const p = getProject(req.params.id);
   if (!p) return res.status(404).json({ error: 'Không tìm thấy' });
+  const state = loadState(req.params.id);
+  if (state) {
+    p.useTemplateMode = state.useTemplateMode !== false;
+    p.generationMode = state.generationMode || (p.useTemplateMode ? 'template' : 'ai-html');
+  }
   res.json(p);
 });
 
@@ -353,36 +457,14 @@ app.get('/api/projects/:id/scenes/:stt/video', (req, res) => {
   else res.status(404).json({ error: 'Chưa có video cảnh này' });
 });
 
-app.get('/api/projects/:id/thumbnail/image', (req, res) => {
-  const file = path.join(SESS_DIR, req.params.id, 'thumbnail', 'thumbnail.jpg');
-  if (!fs.existsSync(file)) return res.status(404).json({ error: 'Chưa có thumbnail' });
-  if (req.query.download === '1') return res.download(file, `${req.params.id}-thumbnail.jpg`);
-  return res.sendFile(file);
-});
-
 // Serve scene HTML with file:// paths rewritten for iframe preview
 app.get('/api/projects/:id/preview/:stt', (req, res) => {
   const htmlPath = path.join(SESS_DIR, req.params.id, 'html', `${req.params.stt}.html`);
   if (!fs.existsSync(htmlPath)) return res.status(404).send('Not found');
   let html = fs.readFileSync(htmlPath, 'utf8');
   // Rewrite file:// project-root paths
+  html = html.replaceAll(pathToFileURL(`${__dirname}${path.sep}`).href, '/');
   html = html.replaceAll('file://' + __dirname + '/', '/');
-  // Rewrite file:// brand-specificities paths → /brand-specificities/
-  const brandDir = path.join(__dirname, 'brand-specificities');
-  html = html.replaceAll(pathToFileURL(brandDir).href.replace(/\/?$/, '/'), '/brand-specificities/');
-  html = html.replaceAll('file://' + brandDir.replace(/\/?$/, '/'), '/brand-specificities/');
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.send(html);
-});
-
-app.get('/api/projects/:id/thumbnail/preview', (req, res) => {
-  const htmlPath = path.join(SESS_DIR, req.params.id, 'html', 'thumbnail.html');
-  if (!fs.existsSync(htmlPath)) return res.status(404).send('Not found');
-  let html = fs.readFileSync(htmlPath, 'utf8');
-  html = html.replaceAll('file://' + __dirname + '/', '/');
-  const brandDir = path.join(__dirname, 'brand-specificities');
-  html = html.replaceAll(pathToFileURL(brandDir).href.replace(/\/?$/, '/'), '/brand-specificities/');
-  html = html.replaceAll('file://' + brandDir.replace(/\/?$/, '/'), '/brand-specificities/');
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(html);
 });
@@ -392,33 +474,30 @@ app.get('/api/projects/:id/scenes/:stt', (req, res) => {
   const { id, stt } = req.params;
   const sc = getScene(id, Number(stt));
   if (!sc) return res.status(404).json({ error: 'Không tìm thấy cảnh' });
+  const stateSc = loadState(id)?.scenes?.find(s => Number(s.stt) === Number(stt));
+  if (stateSc?.templateData) sc.templateData = stateSc.templateData;
+  if (stateSc?.htmlSpec) sc.htmlSpec = stateSc.htmlSpec;
+  if (stateSc?.sfxPlan) sc.sfxPlan = stateSc.sfxPlan;
+  if (stateSc?.imageCandidates) sc.imageCandidates = stateSc.imageCandidates;
+  if (stateSc?.uploadedImageCandidates) sc.uploadedImageCandidates = stateSc.uploadedImageCandidates;
+  if (stateSc?.imageRequired !== undefined) sc.imageRequired = stateSc.imageRequired;
+  if (stateSc?.generationMode) sc.generationMode = stateSc.generationMode;
+  if (stateSc?.useTemplateMode !== undefined) sc.useTemplateMode = stateSc.useTemplateMode;
+  if (stateSc?.ttsVoice) sc.ttsVoice = stateSc.ttsVoice;
   const htmlPath = path.join(SESS_DIR, id, 'html', `${stt}.html`);
   sc.html = fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf8') : '';
   res.json(sc);
 });
 
-app.get('/api/projects/:id/thumbnail', (req, res) => {
-  const state = loadState(req.params.id);
-  if (!state?.thumbnail) return res.status(404).json({ error: 'Không tìm thấy thumbnail' });
-  const htmlPath = path.join(SESS_DIR, req.params.id, 'html', 'thumbnail.html');
-  res.json({
-    title: state.thumbnail.title || '',
-    prompt: state.thumbnail.prompt || '',
-    html_done: Boolean(state.thumbnail.htmlDone),
-    image_done: Boolean(state.thumbnail.imageDone),
-    html: fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf8') : '',
-  });
-});
-
-// Update scene fields (voice, visual) and/or save HTML directly
+// Update scene fields and/or save HTML directly
 app.put('/api/projects/:id/scenes/:stt', (req, res) => {
   const { id, stt } = req.params;
-  const { voice, visual, html } = req.body;
+  const { voice, template, templateData, htmlSpec, sfxPlan, html } = req.body;
 
   // Update DB fields
   const dbFields = {};
   if (voice  !== undefined) dbFields.voice  = voice;
-  if (visual !== undefined) dbFields.visual = visual;
+  if (template !== undefined) dbFields.template = template;
   if (Object.keys(dbFields).length) upsertScene(id, Number(stt), dbFields);
 
   // Also update state.json so pipeline resumability stays in sync
@@ -427,7 +506,10 @@ app.put('/api/projects/:id/scenes/:stt', (req, res) => {
     const sc = state.scenes.find(s => s.stt === Number(stt));
     if (sc) {
       if (voice  !== undefined) sc.voice  = voice;
-      if (visual !== undefined) sc.visual = visual;
+      if (template !== undefined) sc.template = template;
+      if (templateData !== undefined) sc.templateData = templateData;
+      if (htmlSpec !== undefined) sc.htmlSpec = htmlSpec;
+      if (sfxPlan !== undefined) sc.sfxPlan = Array.isArray(sfxPlan) ? sfxPlan : [];
     }
     saveState(id, state);
   }
@@ -437,10 +519,14 @@ app.put('/api/projects/:id/scenes/:stt', (req, res) => {
     const htmlPath = path.join(SESS_DIR, id, 'html', `${stt}.html`);
     fs.writeFileSync(htmlPath, html, 'utf8');
     // Mark render_done=0 so re-render will pick it up
-    upsertScene(id, Number(stt), { render_done: 0 });
+    upsertScene(id, Number(stt), { html_done: 1, render_done: 0 });
     if (state?.scenes) {
       const sc = state.scenes.find(s => s.stt === Number(stt));
-      if (sc) sc.renderDone = false;
+      if (sc) {
+        sc.htmlDone = true;
+        sc.htmlEdited = true;
+        sc.renderDone = false;
+      }
       saveState(id, state);
     }
     // Remove stale silent video
@@ -448,33 +534,6 @@ app.put('/api/projects/:id/scenes/:stt', (req, res) => {
     if (fs.existsSync(silentPath)) fs.unlinkSync(silentPath);
   }
 
-  res.json({ ok: true });
-});
-
-app.put('/api/projects/:id/thumbnail', async (req, res) => {
-  const { id } = req.params;
-  const { title, prompt, html } = req.body;
-  const state = loadState(id);
-  if (!state) return res.status(404).json({ error: 'Không tìm thấy dự án' });
-
-  state.thumbnail = {
-    ...(state.thumbnail || {}),
-    ...(title !== undefined ? { title } : {}),
-    ...(prompt !== undefined ? { prompt } : {}),
-  };
-
-  if (html !== undefined) {
-    const htmlPath = path.join(SESS_DIR, id, 'html', 'thumbnail.html');
-    fs.writeFileSync(htmlPath, html, 'utf8');
-    state.thumbnail.htmlDone = true;
-    state.thumbnail.imageDone = false;
-    saveState(id, state);
-    await renderProjectThumbnail(id);
-  } else {
-    saveState(id, state);
-  }
-
-  broadcast({ sessionId: id, type: 'thumbnail_updated' });
   res.json({ ok: true });
 });
 
@@ -486,36 +545,35 @@ app.post('/api/projects/:id/scenes/:stt/regen', async (req, res) => {
   const sc = project.scenes.find(s => s.stt === Number(stt));
   if (!sc) return res.status(404).json({ error: 'Không tìm thấy cảnh' });
 
-  // Load SRT from file/state for full scene context
+  // Compose deterministic HTML from the current voice/SRT/word timings/templateData.
   const state = loadState(id);
   const stateSc = state?.scenes?.find(s => s.stt === Number(stt));
-  const sceneForAI = { ...sc, srt: stateSc?.srt ?? sc.srt ?? '' };
+  const sceneForComposer = {
+    ...sc,
+    ...(stateSc || {}),
+    srt: stateSc?.srt ?? sc.srt ?? '',
+    wordTimings: stateSc?.wordTimings || loadSceneWordTimings(id, Number(stt)),
+  };
+  const useTemplateMode = state?.useTemplateMode !== false;
 
   res.json({ ok: true });
-  logProgress(id, 5, `Đang tạo lại HTML cảnh ${stt}...`);
+  logProgress(id, 5, useTemplateMode
+    ? `Đang compose lại HTML cảnh ${stt} từ TemplateData...`
+    : `Đang gọi AI tạo lại HTML cảnh ${stt} từ htmlSpec...`);
   try {
-    const sceneProjectAssets = state?.sceneAssetsMap?.[Number(stt)] ?? [];
-    const aiKeys = {
-      sessionId: id,
-      aiProvider: state?.aiProvider || 'chato1',
-      chato1: state?.chato1Keys || project.chato1_keys || [],
-      geminiKeys: state?.geminiKeys || [],
-      openaiKeys: state?.openaiKeys || [],
-    };
     const html = await generateSceneHTML({
-      scene: sceneForAI,
-      keys: aiKeys,
+      scene: sceneForComposer,
+      keys: { sessionId: id },
       onLog: (msg) => logProgress(id, 5, msg, { detail: true, stt: Number(stt) }),
-      projectAssets: sceneProjectAssets,
-      outputAspectRatio: state?.outputAspectRatio || '9:16',
-      styleGuide: state?.styleGuide || DEFAULT_STYLE_GUIDE,
+      sceneCount: state?.scenes?.length || 0,
+      useTemplateMode,
     });
     const htmlPath = path.join(SESS_DIR, id, 'html', `${stt}.html`);
     fs.writeFileSync(htmlPath, html);
     upsertScene(id, Number(stt), { html_done: 1, render_done: 0 });
     if (state?.scenes) {
       const s = state.scenes.find(s => s.stt === Number(stt));
-      if (s) { s.htmlDone = true; s.renderDone = false; }
+      if (s) { s.htmlDone = true; s.htmlEdited = false; s.renderDone = false; }
       const sp = path.join(SESS_DIR, id, 'video', `${stt}_silent.mp4`);
       if (fs.existsSync(sp)) fs.unlinkSync(sp);
       saveState(id, state);
@@ -523,42 +581,6 @@ app.post('/api/projects/:id/scenes/:stt/regen', async (req, res) => {
     broadcast({ sessionId: id, type: 'scene_regenerated', stt: Number(stt) });
   } catch (e) {
     broadcast({ sessionId: id, type: 'error', msg: `Lỗi tạo lại cảnh ${stt}: ${e.message}` });
-  }
-});
-
-app.post('/api/projects/:id/thumbnail/regen', async (req, res) => {
-  const { id } = req.params;
-  const state = loadState(id);
-  if (!state) return res.status(404).json({ error: 'Không tìm thấy dự án' });
-  if (!state.thumbnail?.prompt) return res.status(400).json({ error: 'Thiếu prompt thumbnail' });
-
-  res.json({ ok: true });
-  logProgress(id, 5, 'Đang tạo lại thumbnail...');
-  try {
-    const aiKeys = {
-      sessionId: id,
-      aiProvider: state.aiProvider || 'chato1',
-      chato1: state.chato1Keys || [],
-      geminiKeys: state.geminiKeys || [],
-      openaiKeys: state.openaiKeys || [],
-    };
-    const html = await generateThumbnailHTML({
-      title: state.thumbnail.title || state.topic || 'Thumbnail',
-      prompt: state.thumbnail.prompt,
-      keys: aiKeys,
-      onLog: (msg) => logProgress(id, 5, msg, { detail: true, target: 'thumbnail' }),
-      projectAssets: state.projectAssets || [],
-      outputAspectRatio: state.outputAspectRatio || '9:16',
-      styleGuide: state.styleGuide || DEFAULT_STYLE_GUIDE,
-    });
-    fs.writeFileSync(path.join(SESS_DIR, id, 'html', 'thumbnail.html'), html, 'utf8');
-    state.thumbnail.htmlDone = true;
-    state.thumbnail.imageDone = false;
-    saveState(id, state);
-    await renderProjectThumbnail(id);
-    broadcast({ sessionId: id, type: 'thumbnail_regenerated' });
-  } catch (e) {
-    broadcast({ sessionId: id, type: 'error', msg: `Lỗi tạo lại thumbnail: ${e.message}` });
   }
 });
 
@@ -570,45 +592,13 @@ app.post('/api/projects/:id/scenes/:stt/edit-html', async (req, res) => {
   const project = getProject(id);
   if (!project) return res.status(404).json({ error: 'Không tìm thấy dự án' });
   const state = loadState(id);
-  const aiKeys = {
-    sessionId: id,
-    aiProvider: state?.aiProvider || 'chato1',
-    chato1: state?.chato1Keys || project.chato1_keys || [],
-    geminiKeys: state?.geminiKeys || [],
-    openaiKeys: state?.openaiKeys || [],
-  };
-  try {
-    const html = await editThumbnailHTML({
-      currentHtml,
-      editPrompt,
-      keys: aiKeys,
-      onLog: (msg) => logProgress(id, 5, msg, { detail: true, stt: Number(stt) }),
-    });
-    res.json({ html });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.post('/api/projects/:id/thumbnail/edit-html', async (req, res) => {
-  const { id } = req.params;
-  const { editPrompt, currentHtml } = req.body;
-  if (!editPrompt || !currentHtml) return res.status(400).json({ error: 'Thiếu editPrompt hoặc currentHtml' });
-  const state = loadState(id);
-  if (!state) return res.status(404).json({ error: 'Không tìm thấy dự án' });
-  const aiKeys = {
-    sessionId: id,
-    aiProvider: state.aiProvider || 'chato1',
-    chato1: state.chato1Keys || [],
-    geminiKeys: state.geminiKeys || [],
-    openaiKeys: state.openaiKeys || [],
-  };
+  const aiKeys = { sessionId: id };
   try {
     const html = await editSceneHTML({
       currentHtml,
       editPrompt,
       keys: aiKeys,
-      onLog: (msg) => logProgress(id, 5, msg, { detail: true, target: 'thumbnail' }),
+      onLog: (msg) => logProgress(id, 5, msg, { detail: true, stt: Number(stt) }),
     });
     res.json({ html });
   } catch (e) {
@@ -683,6 +673,7 @@ app.get('/api/video/:id', (req, res) => {
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
 importExistingSessions();
+markInterruptedRunningSessions();
 
 const PORT = Number(process.env.PORT || 3000);
 server.listen(PORT, () => console.log(`▶ http://localhost:${PORT}`));

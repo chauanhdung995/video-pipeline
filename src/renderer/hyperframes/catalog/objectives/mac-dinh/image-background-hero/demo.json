@@ -1,0 +1,69 @@
+{
+  "objective": "mac-dinh",
+  "template": "image-background-hero",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Bitcoin không chỉ là một con số trên biểu đồ, mà đang trở thành bối cảnh tài chính mới mà nhà đầu tư phải nhìn thẳng.",
+      "ttsVoice": "Bitcoin không chỉ là một con số trên biểu đồ, mà đang trở thành bối cảnh tài chính mới mà nhà đầu tư phải nhìn thẳng.",
+      "template": "image-background-hero",
+      "templateData": {
+        "kicker": "Bối cảnh",
+        "title": "Bitcoin đổi vai",
+        "subtitle": "Từ tài sản bên lề thành điểm so sánh với vàng và thị trường truyền thống.",
+        "source": "Demo image",
+        "imageSearch": {
+          "q": "\"bitcoin vs gold\" chart OR editorial -logo -icon",
+          "intent": "Full-screen background for a finance explainer.",
+          "orientation": "portrait",
+          "prefer": [
+            "bitcoin",
+            "gold",
+            "editorial"
+          ],
+          "avoid": [
+            "logo",
+            "icon",
+            "clipart",
+            "stock"
+          ]
+        },
+        "image": {
+          "title": "Bitcoin versus gold visual",
+          "src": "https://images.unsplash.com/photo-1621504450181-5d356f61d307?auto=format&fit=crop&w=1200&q=80",
+          "width": 1200,
+          "height": 1800,
+          "alt": "Bitcoin visual background"
+        },
+        "background": {
+          "type": "image",
+          "src": "https://images.unsplash.com/photo-1621504450181-5d356f61d307?auto=format&fit=crop&w=1200&q=80",
+          "fit": "cover",
+          "colors": [
+            "#0f172a",
+            "#2563eb"
+          ],
+          "opacity": 0.12
+        },
+        "overlay": {
+          "opacity": 0.58
+        },
+        "appearanceOrder": [
+          "image",
+          "kicker",
+          "title",
+          "subtitle"
+        ],
+        "timingPhrases": {
+          "title": "Bitcoin không chỉ",
+          "subtitle": "bối cảnh tài chính mới"
+        },
+        "sfx": {
+          "image": 0.08,
+          "title": "Bitcoin không chỉ"
+        }
+      },
+      "visual": "LAYOUT: image background hero. BACKGROUND: full-screen searched finance image with dark overlay. MAIN ELEMENTS: image, kicker, title, subtitle. APPEARANCE ORDER: image → kicker → title → subtitle. TEXT OVERLAY: Bitcoin đổi vai."
+    }
+  ]
+}

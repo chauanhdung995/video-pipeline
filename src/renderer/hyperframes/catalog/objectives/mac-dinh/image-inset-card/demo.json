@@ -1,0 +1,64 @@
+{
+  "objective": "mac-dinh",
+  "template": "image-inset-card",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Khi đặt Bitcoin cạnh vàng, điều quan trọng không phải là bên nào thắng, mà là dòng tiền đang so sánh hai tài sản này trực tiếp hơn bao giờ hết.",
+      "ttsVoice": "Khi đặt Bitcoin cạnh vàng, điều quan trọng không phải là bên nào thắng, mà là dòng tiền đang so sánh hai tài sản này trực tiếp hơn bao giờ hết.",
+      "template": "image-inset-card",
+      "templateData": {
+        "kicker": "So sánh",
+        "title": "Bitcoin vs vàng",
+        "body": "Một hình ảnh đủ tốt phải giúp người xem hiểu ngay hai tài sản đang được đặt cạnh nhau.",
+        "source": "Demo image",
+        "imageSearch": {
+          "q": "\"bitcoin vs gold\" chart OR infographic -logo -icon",
+          "intent": "Inset image for a comparison scene.",
+          "orientation": "any",
+          "prefer": [
+            "bitcoin",
+            "gold",
+            "chart"
+          ],
+          "avoid": [
+            "logo",
+            "icon",
+            "clipart",
+            "stock"
+          ]
+        },
+        "image": {
+          "title": "Bitcoin and gold comparison",
+          "src": "https://images.unsplash.com/photo-1621761191319-c6fb62004040?auto=format&fit=crop&w=1200&q=80",
+          "width": 1200,
+          "height": 900,
+          "alt": "Bitcoin and gold comparison"
+        },
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "image",
+          "title",
+          "body"
+        ],
+        "timingPhrases": {
+          "image": "Bitcoin cạnh vàng",
+          "title": "Bitcoin cạnh vàng"
+        },
+        "sfx": {
+          "image": "Bitcoin cạnh vàng",
+          "title": "dòng tiền"
+        }
+      },
+      "visual": "LAYOUT: image inset card. BACKGROUND: gradient with data grid. MAIN ELEMENTS: image panel, kicker, title, body. APPEARANCE ORDER: image → title → body. TEXT OVERLAY: Bitcoin vs vàng."
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "objective": "mac-dinh",
+  "template": "stat-pill",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Mức tăng năm trăm phần trăm là tín hiệu người xem không thể bỏ qua.",
+      "ttsVoice": "Mức tăng năm trăm phần trăm là tín hiệu người xem không thể bỏ qua.",
+      "template": "stat-pill",
+      "templateData": {
+        "value": "+500%",
+        "label": "tăng trưởng chi tiêu",
+        "context": "~600M USD/tháng",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "value",
+          "label",
+          "context"
+        ],
+        "timingPhrases": {
+          "value": "năm trăm phần trăm",
+          "context": "sáu trăm triệu"
+        },
+        "sfx": {
+          "value": "năm trăm phần trăm",
+          "context": "sáu trăm triệu"
+        }
+      },
+      "visual": "LAYOUT: stat-pill. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: value → label → context. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: stat-pill. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: value → label → context. TEXT OVERLAY: demo.",
+        "layout": "stat-pill",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "value",
+          "label",
+          "context."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "stat-pill.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "value → label → context.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "objective": "mac-dinh",
+  "template": "onchain-payment",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Thanh toán on-chain giúp giao dịch minh bạch hơn ngay tại thời điểm sử dụng.",
+      "ttsVoice": "Thanh toán on-chain giúp giao dịch minh bạch hơn ngay tại thời điểm sử dụng.",
+      "template": "onchain-payment",
+      "templateData": {
+        "title": "Thanh toán on-chain",
+        "cardLabel": "VISA CRYPTO",
+        "statMain": "90%",
+        "statSub": "on-chain",
+        "note": "Luồng thanh toán minh bạch",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "elements": {
+          "card": {
+            "x": 540,
+            "y": 840,
+            "timingPhrase": "thẻ"
+          },
+          "wallet": {
+            "x": 540,
+            "y": 910,
+            "timingPhrase": "ví"
+          },
+          "halo": {
+            "x": 540,
+            "y": 840,
+            "timingPhrase": "on-chain"
+          },
+          "icons": []
+        },
+        "appearanceOrder": [
+          "wallet",
+          "card",
+          "halo",
+          "stat"
+        ],
+        "timingPhrases": {
+          "halo": "on-chain",
+          "stat": "chín mươi phần trăm"
+        },
+        "sfx": {
+          "wallet": "ví",
+          "card": "thẻ",
+          "halo": "on-chain",
+          "stat": "chín mươi phần trăm"
+        }
+      },
+      "visual": "LAYOUT: onchain-payment. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: wallet → card → halo → stat. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: onchain-payment. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: wallet → card → halo → stat. TEXT OVERLAY: demo.",
+        "layout": "onchain-payment",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "wallet",
+          "card",
+          "halo",
+          "stat."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "onchain-payment.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "wallet → card → halo → stat.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

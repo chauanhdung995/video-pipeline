@@ -1,0 +1,42 @@
+{
+  "template": "feature-stack",
+  "description": "Stacked feature cards or layered ideas.",
+  "templateData": {
+    "title": "Điều gì đang thay đổi",
+    "bullets": [
+      "lớp 1",
+      "lớp 2",
+      "lớp 3"
+    ],
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "title",
+      "stack-1",
+      "stack-2",
+      "stack-3"
+    ],
+    "timingPhrases": {
+      "title": "đang thay đổi"
+    },
+    "sfx": {
+      "title": "đang thay đổi",
+      "item1": "lớp 1",
+      "item2": "lớp 2",
+      "item3": "lớp 3"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

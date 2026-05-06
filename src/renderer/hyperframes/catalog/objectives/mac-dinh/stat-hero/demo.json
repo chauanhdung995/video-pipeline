@@ -1,0 +1,87 @@
+{
+  "objective": "mac-dinh",
+  "template": "stat-hero",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Con số chín mươi phần trăm cho thấy xu hướng này đã trở thành trung tâm.",
+      "ttsVoice": "Con số chín mươi phần trăm cho thấy xu hướng này đã trở thành trung tâm.",
+      "template": "stat-hero",
+      "templateData": {
+        "value": "90%",
+        "label": "thị phần",
+        "context": "một câu ngắn giải thích số liệu",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "value",
+          "label",
+          "context"
+        ],
+        "timingPhrases": {
+          "value": "chín mươi phần trăm",
+          "label": "thị phần"
+        },
+        "sfx": {
+          "value": "chín mươi phần trăm",
+          "context": "xu hướng"
+        }
+      },
+      "visual": "LAYOUT: stat-hero. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: value → label → context. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: stat-hero. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: value → label → context. TEXT OVERLAY: demo.",
+        "layout": "stat-hero",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "value",
+          "label",
+          "context."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "stat-hero.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "value → label → context.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "objective": "breaking-news",
+  "template": "live-update-ticker",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Cập nhật trực tiếp: khu vực trung tâm đã mở lại một phần, nhưng các tuyến phụ vẫn được khuyến cáo hạn chế di chuyển.",
+      "ttsVoice": "Cập nhật trực tiếp: khu vực trung tâm đã mở lại một phần, nhưng các tuyến phụ vẫn được khuyến cáo hạn chế di chuyển.",
+      "template": "live-update-ticker",
+      "templateData": {
+        "kicker": "LIVE",
+        "headline": "Khu vực trung tâm mở lại một phần",
+        "updates": [
+          {
+            "time": "16:05",
+            "text": "Một số tuyến chính đã hoạt động trở lại."
+          },
+          {
+            "time": "16:20",
+            "text": "Tuyến phụ vẫn được khuyến cáo hạn chế di chuyển."
+          },
+          {
+            "time": "16:45",
+            "text": "Cơ quan chức năng chuẩn bị phát thông báo tiếp theo."
+          }
+        ],
+        "nextUpdate": "Cập nhật tiếp theo dự kiến 17:00",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#05070d",
+            "#101827",
+            "#dc2626",
+            "#22d3ee"
+          ],
+          "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+          "opacity": 0.16
+        },
+        "blockRefs": [
+          "macos-notification",
+          "whip-pan",
+          "shimmer-sweep"
+        ],
+        "appearanceOrder": [
+          "headline",
+          "update1",
+          "update2",
+          "nextUpdate"
+        ],
+        "timingPhrases": {
+          "headline": "mở lại một phần",
+          "update1": "tuyến chính",
+          "update2": "tuyến phụ",
+          "nextUpdate": "thông báo tiếp theo"
+        },
+        "sfx": {
+          "alert": 0.04,
+          "update1": "tuyến chính",
+          "update2": "tuyến phụ"
+        }
+      },
+      "visual": "LAYOUT: live update ticker. MAIN ELEMENTS: live badge, headline, scrolling updates, next update time. BACKGROUND: polished breaking-news broadcast surface."
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "template": "image-inset-card",
+  "description": "Serper image as an inset media panel with adjacent news/explainer text.",
+  "templateData": {
+    "kicker": "Hình ảnh minh họa",
+    "title": "Ý chính của cảnh",
+    "body": "Một câu ngắn đặt hình ảnh vào đúng ngữ cảnh",
+    "source": "",
+    "imageSearch": {
+      "q": "\"bitcoin vs gold\" chart OR infographic -logo -icon",
+      "intent": "Find an image that illustrates the scene and remains readable inside a rounded media panel.",
+      "orientation": "any",
+      "prefer": [
+        "chart",
+        "infographic",
+        "comparison"
+      ],
+      "avoid": [
+        "logo",
+        "icon",
+        "clipart",
+        "stock"
+      ]
+    },
+    "image": {
+      "title": "",
+      "src": "",
+      "width": 0,
+      "height": 0,
+      "alt": ""
+    },
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "image",
+      "title",
+      "body"
+    ],
+    "timingPhrases": {
+      "image": "cụm nhắc tới hình ảnh",
+      "title": "cụm tiêu đề chính"
+    },
+    "sfx": {
+      "image": "cụm nhắc tới hình ảnh",
+      "title": "cụm tiêu đề chính"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

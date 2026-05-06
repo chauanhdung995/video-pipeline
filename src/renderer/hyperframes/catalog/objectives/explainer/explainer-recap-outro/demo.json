@@ -1,0 +1,46 @@
+{
+  "objective": "explainer",
+  "template": "explainer-recap-outro",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Tóm lại: tắc nghẽn làm hàng đợi dài hơn. Phí là tín hiệu ưu tiên. Muốn hiểu đúng, hãy nhìn cơ chế. Theo dõi Explainer để hiểu nhanh hơn.",
+      "ttsVoice": "Tóm lại: tắc nghẽn làm hàng đợi dài hơn. Phí là tín hiệu ưu tiên. Muốn hiểu đúng, hãy nhìn cơ chế. Theo dõi Explainer để hiểu nhanh hơn.",
+      "template": "explainer-recap-outro",
+      "templateData": {
+        "title": "Tóm lại",
+        "takeaways": [
+          { "label": "1", "text": "Tắc nghẽn làm hàng đợi dài hơn" },
+          { "label": "2", "text": "Phí là tín hiệu ưu tiên" },
+          { "label": "3", "text": "Muốn hiểu đúng, hãy nhìn cơ chế" }
+        ],
+        "cta": "Theo dõi để hiểu nhanh hơn",
+        "channelName": "Explainer",
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["logo-outro", "tiktok-follow", "yt-lower-third"],
+        "appearanceOrder": ["title", "item1", "item2", "item3", "cta", "channelName"],
+        "timingPhrases": {
+          "title": "tóm lại",
+          "item1": "hàng đợi",
+          "item2": "tín hiệu ưu tiên",
+          "item3": "nhìn cơ chế",
+          "cta": "theo dõi",
+          "channelName": "Explainer"
+        },
+        "sfx": {
+          "title": "tóm lại",
+          "item1": "hàng đợi",
+          "cta": "theo dõi",
+          "finish": "Explainer"
+        }
+      },
+      "visual": "LAYOUT: explainer recap outro. BACKGROUND: ink navy with cyan and amber accents. MAIN ELEMENTS: title, takeaway list, CTA, channel. APPEARANCE ORDER: title -> items -> cta -> channelName. TEXT OVERLAY: \"Tóm lại\"; \"Theo dõi\"."
+    }
+  ]
+}

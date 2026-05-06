@@ -1,0 +1,93 @@
+{
+  "objective": "mac-dinh",
+  "template": "feature-list",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Có ba điểm cần nhớ: tốc độ, chi phí, và trải nghiệm người dùng.",
+      "ttsVoice": "Có ba điểm cần nhớ: tốc độ, chi phí, và trải nghiệm người dùng.",
+      "template": "feature-list",
+      "templateData": {
+        "title": "Ba điểm cần nhớ",
+        "bullets": [
+          "ý 1",
+          "ý 2",
+          "ý 3"
+        ],
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "title",
+          "bullet-1",
+          "bullet-2",
+          "bullet-3"
+        ],
+        "timingPhrases": {
+          "title": "điểm cần nhớ"
+        },
+        "sfx": {
+          "card": "điểm cần nhớ",
+          "item1": "ý 1",
+          "item2": "ý 2",
+          "item3": "ý 3"
+        }
+      },
+      "visual": "LAYOUT: feature-list. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: title → bullet-1 → bullet-2 → bullet-3. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: feature-list. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: title → bullet-1 → bullet-2 → bullet-3. TEXT OVERLAY: demo.",
+        "layout": "feature-list",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "title",
+          "bullet-1",
+          "bullet-2",
+          "bullet-3."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "feature-list.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "title → bullet-1 → bullet-2 → bullet-3.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

@@ -1,32 +1,12 @@
 // public/script.js
 'use strict';
 
-// ─── Aspect ratio configs ─────────────────────────────────────────────────────
-const ASPECT_RATIOS = {
-  '9:16': { w: 1080, h: 1920, cssRatio: '9/16', gridMinW: 160, modalPreviewW: 430 },
-  '16:9': { w: 1920, h: 1080, cssRatio: '16/9', gridMinW: 300, modalPreviewW: 520 },
-  '1:1':  { w: 1080, h: 1080, cssRatio: '1/1',  gridMinW: 200, modalPreviewW: 430 },
-  '4:5':  { w: 1080, h: 1350, cssRatio: '4/5',  gridMinW: 180, modalPreviewW: 410 },
-};
+// ─── Fixed output format: 9:16 Reels/TikTok ───────────────────────────────────
+const OUTPUT_ASPECT_RATIO = '9:16';
+const OUTPUT_AR = { w: 1080, h: 1920, cssRatio: '9/16', gridMinW: 160, modalPreviewW: 430 };
 
-function applyAIProviderUI(provider) {
-  $('groupChato1').classList.toggle('hidden', provider !== 'chato1');
-  $('groupGemini').classList.toggle('hidden', provider !== 'gemini');
-  $('groupOpenAI').classList.toggle('hidden', provider !== 'openai');
-}
-
-function applyTTSProviderUI(provider) {
-  const current = provider === 'vbee' ? 'vbee' : 'lucylab';
-  $('groupLucyLab').classList.toggle('hidden', current !== 'lucylab');
-  $('groupLucyVoice').classList.toggle('hidden', current !== 'lucylab');
-  $('groupVbeeKey').classList.toggle('hidden', current !== 'vbee');
-  $('groupVbeeAppId').classList.toggle('hidden', current !== 'vbee');
-  $('groupVbeeVoiceCode').classList.toggle('hidden', current !== 'vbee');
-}
-
-function applyAspectRatioCSS(key) {
-  const ar = ASPECT_RATIOS[key] || ASPECT_RATIOS['9:16'];
-  activeAspectRatio = ASPECT_RATIOS[key] ? key : '9:16';
+function applyAspectRatioCSS() {
+  const ar = OUTPUT_AR;
   const r  = document.documentElement;
   r.style.setProperty('--out-w',             ar.w + 'px');
   r.style.setProperty('--out-h',             ar.h + 'px');
@@ -39,7 +19,7 @@ function applyAspectRatioCSS(key) {
 }
 
 function getActiveAspectRatioConfig() {
-  return ASPECT_RATIOS[activeAspectRatio] || ASPECT_RATIOS['9:16'];
+  return OUTPUT_AR;
 }
 
 function updateIframeScale(iframe, wrapper) {
@@ -64,36 +44,47 @@ function updateAllPreviewScales() {
   updateIframeScale($('previewFrame'), $('previewFrame')?.closest('.preview-wrap'));
 }
 
-function getProjectAspectRatio(project) {
-  return project?.output_aspect_ratio || project?.outputAspectRatio || '9:16';
-}
-
 // ─── State ────────────────────────────────────────────────────────────────────
-let chato1Keys          = [];
-let geminiKeys          = [];
-let openaiKeys          = [];
 let currentId           = null;
 let editingStt          = null;
 let editingTargetType   = 'scene';
+let editingUsesTemplateMode = true;
 let ws                  = null;
 let editorBusy          = false;
-let projectAssets       = []; // { file, name, type, aspectRatio, filename }
-let selectedAspectRatio = '9:16';
-let activeAspectRatio   = '9:16';
-let selectedAIProvider  = 'chato1';
-let selectedStyleId     = null; // null = default (id 1)
+let backgroundMusic     = null; // { file, name, filename }
+let uploadedImageFiles  = [];
+let selectedVideoObjective = 'mac-dinh';
 let regeneratingScenes  = new Set();
+let videoObjectives     = [];
 
 const $ = id => document.getElementById(id);
+window.$ = $;
+window.updateAllPreviewScales = updateAllPreviewScales;
+window.updateIframeScale = updateIframeScale;
 const VIDEO_DURATION_OPTIONS = [60, 120, 180, 240, 300];
-const SCENE_DURATION_OPTIONS = [5, 7, 10, 12, 15, 20];
-const WORD_TARGETS_DISPLAY = { 5:24, 7:34, 10:48, 12:58, 15:72, 20:96 };
-const SCENE_DURATION_RULES = {
-  60:  [5, 7, 10],
-  120: [7, 10, 12, 15],
-  180: [5, 7, 10, 12, 15],
-  240: [10, 12, 15, 20],
-  300: [10, 12, 15, 20],
+const TTS_SPEED_OPTIONS = ['0.9', '1.0', '1.1', '1.2'];
+let AVAILABLE_SCENE_TEMPLATES = [
+  'hook',
+  'comparison',
+  'comparison-vs',
+  'stat-hero',
+  'stat-pill',
+  'feature-list',
+  'feature-stack',
+  'callout',
+  'news-card',
+  'market-chart',
+  'crypto-card-hero',
+  'onchain-payment',
+  'payment-network-halo',
+  'outro',
+];
+const DURATION_HINTS = {
+  60:  { scenes: '4-8', words: '210-270', note: 'AI ưu tiên hook nhanh, ít luận điểm, cảnh ngắn ở phần mở đầu và kết.' },
+  120: { scenes: '6-12', words: '430-520', note: 'AI có đủ chỗ cho hook, vài luận điểm chính và kết luận gọn.' },
+  180: { scenes: '8-16', words: '650-780', note: 'AI có thể xen kẽ cảnh giải thích dài với cảnh số liệu/ngắt nhịp ngắn.' },
+  240: { scenes: '10-20', words: '850-1040', note: 'AI nên gom nội dung thành cụm, mỗi cụm dùng template phù hợp.' },
+  300: { scenes: '12-24', words: '1060-1300', note: 'AI có thể triển khai sâu hơn nhưng vẫn giữ mỗi cảnh tập trung một ý.' },
 };
 
 // ─── WebSocket ────────────────────────────────────────────────────────────────
@@ -139,21 +130,11 @@ function handleWS(msg) {
     refreshProject();
   } else if (msg.type === 'scene_html_ready') {
     reloadSceneCard(msg.stt);
+    reloadPreviewIfOpen(msg.stt);
     appendLog(`✓ HTML cảnh ${msg.stt} xong`);
   } else if (msg.type === 'scene_render_done') {
     reloadSceneCard(msg.stt);
     appendLog(`✓ Render cảnh ${msg.stt} xong`);
-    clearCurrentOp();
-    editorBusy = false;
-    resetEditorButtons();
-    refreshProject();
-  } else if (msg.type === 'thumbnail_html_ready' || msg.type === 'thumbnail_image_ready') {
-    reloadThumbnailCard();
-    appendLog(`✓ Thumbnail ${msg.type === 'thumbnail_image_ready' ? 'ảnh' : 'HTML'} xong`);
-  } else if (msg.type === 'thumbnail_updated' || msg.type === 'thumbnail_regenerated') {
-    reloadThumbnailCard();
-    reloadPreviewIfOpen('thumbnail');
-    appendLog('✓ Thumbnail đã được cập nhật');
     clearCurrentOp();
     editorBusy = false;
     resetEditorButtons();
@@ -201,187 +182,223 @@ function setCurrentOp(step, msg) {
 function clearCurrentOp() { $('currentOp').classList.add('hidden'); }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
-const LS_KEYS_KEY      = 'pipeline_chato1_keys';
 const LS_LOGO_KEY      = 'pipeline_logo_name';
-const LS_TTS_PROVIDER  = 'pipeline_tts_provider';
-const LS_LUCYLAB_KEY   = 'pipeline_lucylab_key';
-const LS_VOICE_ID      = 'pipeline_voice_id';
-const LS_VBEE_KEY      = 'pipeline_vbee_key';
-const LS_VBEE_APP_ID   = 'pipeline_vbee_app_id';
-const LS_VBEE_VOICE    = 'pipeline_vbee_voice_code';
-const LS_ASPECT_RATIO  = 'pipeline_aspect_ratio';
-const LS_AI_PROVIDER   = 'pipeline_ai_provider';
-const LS_GEMINI_KEYS   = 'pipeline_gemini_keys';
-const LS_OPENAI_KEYS   = 'pipeline_openai_keys';
+const LS_LARVOICE_VOICE = 'pipeline_larvoice_voice_id';
 const LS_SUBTITLES     = 'pipeline_enable_subtitles';
 const LS_VIDEO_DURATION = 'pipeline_video_duration';
-const LS_SCENE_DURATION = 'pipeline_scene_duration';
 const LS_TTS_SPEED      = 'pipeline_tts_speed';
-const SCRIPT_SAMPLE = document.getElementById('scriptSampleContent')?.value || '';
+const LS_VIDEO_OBJECTIVE = 'pipeline_video_objective';
+const LS_USE_TEMPLATE_MODE = 'pipeline_use_template_mode';
 
-function getDurationPlan(videoDurationSec, sceneDurationSec) {
+function getDurationPlan(videoDurationSec) {
   const safeVideoDuration = VIDEO_DURATION_OPTIONS.includes(videoDurationSec) ? videoDurationSec : 120;
-  const allowedSceneDurations = SCENE_DURATION_RULES[safeVideoDuration] || SCENE_DURATION_OPTIONS;
-  const fallbackSceneDuration = [15, 12, 10, 7, 5, 20].find(d => allowedSceneDurations.includes(d)) ?? allowedSceneDurations[0];
-  const safeSceneDuration = allowedSceneDurations.includes(sceneDurationSec) ? sceneDurationSec : fallbackSceneDuration;
-  const sceneCount = Math.max(1, Math.ceil(safeVideoDuration / safeSceneDuration));
-  const wordsPerScene = WORD_TARGETS_DISPLAY[safeSceneDuration] ?? Math.max(8, Math.round(safeSceneDuration * 4.8));
-  return { videoDurationSec: safeVideoDuration, sceneDurationSec: safeSceneDuration, sceneCount, wordsPerScene, allowedSceneDurations };
-}
-
-function syncSceneDurationOptions() {
-  const videoDurationSec = Number($('videoDuration').value);
-  const allowedSceneDurations = SCENE_DURATION_RULES[videoDurationSec] || SCENE_DURATION_OPTIONS;
-  const sceneSelect = $('sceneDuration');
-  [...sceneSelect.options].forEach(option => {
-    const value = Number(option.value);
-    option.disabled = !allowedSceneDurations.includes(value);
-    option.hidden = !allowedSceneDurations.includes(value);
-  });
-
-  if (!allowedSceneDurations.includes(Number(sceneSelect.value))) {
-    const preferred = [15, 12, 10, 7, 5, 20].find(d => allowedSceneDurations.includes(d)) ?? allowedSceneDurations[0];
-    sceneSelect.value = String(preferred);
-  }
+  return { videoDurationSec: safeVideoDuration, ...(DURATION_HINTS[safeVideoDuration] || DURATION_HINTS[120]) };
 }
 
 function updateDurationSummary() {
-  const plan = getDurationPlan(Number($('videoDuration').value), Number($('sceneDuration').value));
-  const pacingNote = plan.videoDurationSec >= 300
-    ? 'Video 5 phút: dùng cảnh dài 12-20 giây để trình bày ý sâu, giữ mạch nội dung ổn định.'
-    : plan.videoDurationSec >= 240
-    ? 'Video 4 phút: cảnh 12-20 giây cho phép giải thích rõ ràng từng luận điểm.'
-    : plan.videoDurationSec >= 120
-    ? 'Video 2 phút: cảnh 10-15 giây — nhịp vừa đủ để người xem tiếp thu tốt.'
-    : 'Video 1 phút: cảnh ngắn 5-10 giây để tối ưu retention và nhịp nhanh.';
-  $('durationSummary').textContent = `Ước tính ${plan.sceneCount} cảnh, ~${plan.wordsPerScene} từ/cảnh. ${pacingNote}`;
+  const plan = getDurationPlan(Number($('videoDuration').value));
+  $('durationSummary').textContent = `AI tự chia cảnh theo nội dung/template. Gợi ý: ${plan.scenes} cảnh, tổng khoảng ${plan.words} từ. ${plan.note}`;
 }
 
-function detectInputMode(raw) {
-  const text = String(raw || '').trim();
-  if (!text) return { topic: '', scriptJson: null, isManualScript: false };
-
-  let parsed;
+async function loadVideoObjectives(preferredId = 'mac-dinh') {
   try {
-    parsed = JSON.parse(text);
-  } catch (error) {
-    return { topic: text, scriptJson: null, isManualScript: false };
-  }
-
-  const scenes = Array.isArray(parsed)
-    ? parsed
-    : Array.isArray(parsed?.scenes)
-      ? parsed.scenes
-      : Array.isArray(parsed?.script)
-        ? parsed.script
-        : null;
-  if (!Array.isArray(scenes) || !scenes.length) {
-    throw new Error('Nếu nhập JSON, nội dung phải có mảng "scenes" không rỗng hoặc là một array cảnh');
-  }
-
-  scenes.forEach((scene, index) => {
-    const label = `Cảnh ${Number(scene?.stt ?? index + 1) || index + 1}`;
-    if (!Number.isInteger(Number(scene?.stt ?? index + 1)) || Number(scene?.stt ?? index + 1) < 1) {
-      throw new Error(`${label}: "stt" phải là số nguyên dương`);
-    }
-    if (!String(scene?.voice ?? '').trim()) {
-      throw new Error(`${label}: thiếu "voice"`);
-    }
-    if (!String(scene?.visual ?? '').trim()) {
-      throw new Error(`${label}: thiếu "visual"`);
-    }
-    if (scene?.assets != null && !Array.isArray(scene.assets)) {
-      throw new Error(`${label}: "assets" phải là mảng nếu có`);
-    }
-  });
-
-  if (parsed?.thumbnail != null) {
-    if (typeof parsed.thumbnail !== 'object' || Array.isArray(parsed.thumbnail)) {
-      throw new Error('"thumbnail" phải là object nếu có');
-    }
-    if (!String(parsed.thumbnail.prompt ?? '').trim()) {
-      throw new Error('Thumbnail thiếu "prompt"');
-    }
-  }
-
-  return { topic: '', scriptJson: text, isManualScript: true };
-}
-
-function openScriptSample() {
-  $('scriptSampleModal').showModal();
-}
-
-async function copyScriptSample() {
-  try {
-    await navigator.clipboard.writeText(SCRIPT_SAMPLE);
-    $('topic').value = SCRIPT_SAMPLE;
-    $('scriptSampleModal').close();
+    const data = await api('/api/video-objectives');
+    videoObjectives = Array.isArray(data.objectives) ? data.objectives : [];
   } catch {
-    alert('Không thể sao chép tự động. Bạn có thể copy trực tiếp từ cửa sổ mẫu.');
+    videoObjectives = [{ id: 'mac-dinh', name: 'Mặc định', description: '', templates: AVAILABLE_SCENE_TEMPLATES, templateCount: AVAILABLE_SCENE_TEMPLATES.length }];
+  }
+  if (!videoObjectives.length) {
+    videoObjectives = [{ id: 'mac-dinh', name: 'Mặc định', description: '', templates: AVAILABLE_SCENE_TEMPLATES, templateCount: AVAILABLE_SCENE_TEMPLATES.length }];
+  }
+  const select = $('videoObjective');
+  select.innerHTML = videoObjectives.map(item => {
+    const suffix = Number(item.templateCount) > 0 ? `${item.templateCount} template` : 'chưa có template';
+    return `<option value="${esc(item.id)}">${esc(item.name)} — ${esc(suffix)}</option>`;
+  }).join('');
+  selectedVideoObjective = videoObjectives.some(item => item.id === preferredId) ? preferredId : 'mac-dinh';
+  select.value = selectedVideoObjective;
+  updateVideoObjectiveSelection();
+}
+
+function updateVideoObjectiveSelection() {
+  const objective = videoObjectives.find(item => item.id === $('videoObjective').value)
+    || videoObjectives.find(item => item.id === 'mac-dinh')
+    || videoObjectives[0];
+  selectedVideoObjective = objective?.id || 'mac-dinh';
+  AVAILABLE_SCENE_TEMPLATES = Array.isArray(objective?.templates) ? objective.templates : [];
+  const count = AVAILABLE_SCENE_TEMPLATES.length;
+  if (!isTemplateModeEnabled()) {
+    $('videoObjectiveHint').textContent = 'Tắt template: AI tự viết kịch bản, tạo htmlSpec chi tiết, rồi gọi AI tạo HTML cho từng cảnh.';
+    return;
+  }
+  $('videoObjectiveHint').textContent = count
+    ? `${objective.name}: AI chỉ được chọn ${count} template: ${AVAILABLE_SCENE_TEMPLATES.join(', ')}`
+    : `${objective?.name || selectedVideoObjective}: chưa có template, không thể tạo video bằng mục tiêu này.`;
+}
+
+function isTemplateModeEnabled() {
+  return $('useTemplateMode').value !== '0';
+}
+
+function updateTemplateModeUI() {
+  const enabled = isTemplateModeEnabled();
+  $('videoObjectiveGroup').classList.toggle('muted-setting', !enabled);
+  $('videoObjective').disabled = !enabled;
+  $('videoObjectiveHint').textContent = enabled
+    ? $('videoObjectiveHint').textContent
+    : 'Tắt template: AI tự viết kịch bản, tạo htmlSpec chi tiết, rồi gọi AI tạo HTML cho từng cảnh.';
+  $('templateModeHint').textContent = enabled
+    ? 'Bật template: AI chọn template và sinh templateData theo schema.'
+    : 'Tắt template: AI sinh JSON mô tả HTML chi tiết + SFX plan, sau đó tạo HTML từng cảnh.';
+  if (enabled) updateVideoObjectiveSelection();
+}
+
+async function crawlUrlToTopic() {
+  const url = $('crawlUrl').value.trim();
+  if (!url) return alert('Nhập URL bài viết cần crawl');
+
+  const btn = $('btnCrawlUrl');
+  const status = $('crawlStatus');
+  const oldText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Đang lấy...';
+  status.textContent = 'Đang lấy nội dung bài viết...';
+
+  try {
+    const data = await api('/api/crawl-url', 'POST', { url });
+    if (data?.error) throw new Error(data.error);
+    const text = String(data?.text || '').trim();
+    if (!text) throw new Error('Không lấy được nội dung trong trường text');
+    $('topic').value = text;
+    $('topic').focus();
+    status.textContent = `Đã lấy ${text.length.toLocaleString()} ký tự từ URL`;
+  } catch (error) {
+    status.textContent = `Lỗi crawl: ${error.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldText;
+  }
+}
+
+function voiceOptionLabel(voice) {
+  return String(voice?.name || '')
+    .replace(/\s*\(\s*pro\s*\)\s*/gi, ' ')
+    .replace(/\bpro\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim() || 'LarVoice';
+}
+
+async function loadLarVoiceVoices(preferredId = null) {
+  const select = $('larvoiceVoiceId');
+  select.disabled = true;
+  select.innerHTML = '<option value="1">Đang tải danh sách giọng...</option>';
+  try {
+    const data = await api('/api/larvoice/voices');
+    if (data?.error) throw new Error(data.error);
+    const voices = Array.isArray(data?.voices) ? data.voices : [];
+    if (!voices.length) throw new Error('Danh sách giọng rỗng');
+
+    select.innerHTML = '';
+    for (const [language, label] of [['vi', 'Tiếng Việt'], ['en', 'English']]) {
+      const groupVoices = voices.filter(v => v.language === language);
+      if (!groupVoices.length) continue;
+      const group = document.createElement('optgroup');
+      group.label = label;
+      for (const voice of groupVoices) {
+        const opt = document.createElement('option');
+        opt.value = String(voice.id);
+        opt.textContent = voiceOptionLabel(voice);
+        group.appendChild(opt);
+      }
+      select.appendChild(group);
+    }
+
+    const desired = String(preferredId || localStorage.getItem(LS_LARVOICE_VOICE) || '1');
+    if ([...select.options].some(option => option.value === desired)) {
+      select.value = desired;
+    } else if ([...select.options].some(option => option.value === '1')) {
+      select.value = '1';
+    }
+    localStorage.setItem(LS_LARVOICE_VOICE, select.value);
+  } catch (error) {
+    select.innerHTML = '<option value="1">ID:1 - Anh Quân (VI)</option>';
+    select.value = '1';
+    console.warn('LarVoice voices:', error);
+  } finally {
+    select.disabled = false;
+  }
+}
+
+async function previewLarVoice() {
+  const voiceId = Number($('larvoiceVoiceId').value);
+  if (!Number.isFinite(voiceId)) return alert('Chọn giọng đọc LarVoice');
+
+  const btn = $('btnPreviewVoice');
+  const audio = $('voicePreviewAudio');
+  const resetPreviewButton = () => {
+    btn.disabled = false;
+    btn.textContent = '▶';
+    btn.dataset.state = 'idle';
+  };
+
+  if (btn.dataset.state === 'playing' && !audio.paused) {
+    audio.pause();
+    audio.currentTime = 0;
+    resetPreviewButton();
+    return;
+  }
+  if (btn.dataset.state === 'loading') return;
+
+  btn.dataset.state = 'loading';
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    const data = await api('/api/larvoice/sample', 'POST', {
+      larvoiceVoiceId: voiceId,
+    });
+    if (data?.error) throw new Error(data.error);
+    audio.pause();
+    audio.src = data.url;
+    audio.currentTime = 0;
+    audio.onended = () => {
+      resetPreviewButton();
+    };
+    audio.onerror = () => {
+      resetPreviewButton();
+    };
+    await audio.play().catch(error => {
+      resetPreviewButton();
+      throw error;
+    });
+    btn.disabled = false;
+    btn.textContent = '⏸';
+    btn.dataset.state = 'playing';
+  } catch (error) {
+    alert(`Không thể nghe thử giọng: ${error.message}\n\nFile nghe thử chỉ lấy từ thư mục local. Chạy npm run voice:samples để tạo/cập nhật mp3 mẫu.`);
+    resetPreviewButton();
   }
 }
 
 async function initSettings() {
-  const savedKeys = localStorage.getItem(LS_KEYS_KEY);
-  if (savedKeys) {
-    try {
-      chato1Keys = JSON.parse(savedKeys);
-      renderKeyCount();
-    } catch {}
-  }
+  const savedLarVoiceVoiceId = localStorage.getItem(LS_LARVOICE_VOICE) || '1';
+  await loadLarVoiceVoices(savedLarVoiceVoiceId);
 
-  const savedLucylabKey = localStorage.getItem(LS_LUCYLAB_KEY);
-  if (savedLucylabKey) $('lucylabKey').value = savedLucylabKey;
+  await loadVideoObjectives(localStorage.getItem(LS_VIDEO_OBJECTIVE) || 'mac-dinh');
+  const savedTemplateMode = localStorage.getItem(LS_USE_TEMPLATE_MODE);
+  $('useTemplateMode').value = savedTemplateMode === '0' ? '0' : '1';
+  updateTemplateModeUI();
 
-  const savedVoiceId = localStorage.getItem(LS_VOICE_ID);
-  if (savedVoiceId) $('voiceId').value = savedVoiceId;
-
-  const savedVbeeKey = localStorage.getItem(LS_VBEE_KEY);
-  if (savedVbeeKey) $('vbeeKey').value = savedVbeeKey;
-
-  const savedVbeeAppId = localStorage.getItem(LS_VBEE_APP_ID);
-  if (savedVbeeAppId) $('vbeeAppId').value = savedVbeeAppId;
-
-  const savedVbeeVoiceCode = localStorage.getItem(LS_VBEE_VOICE);
-  if (savedVbeeVoiceCode) $('vbeeVoiceCode').value = savedVbeeVoiceCode;
-
-  const savedTTSProvider = localStorage.getItem(LS_TTS_PROVIDER) || 'lucylab';
-  $('ttsProvider').value = savedTTSProvider;
-  applyTTSProviderUI(savedTTSProvider);
-
-  const savedAR = localStorage.getItem(LS_ASPECT_RATIO) || '9:16';
-  selectedAspectRatio = savedAR;
-  $('outputAspectRatio').value = savedAR;
-  applyAspectRatioCSS(savedAR);
-
-  const savedProvider = localStorage.getItem(LS_AI_PROVIDER) || 'chato1';
-  selectedAIProvider = savedProvider;
-  $('aiProvider').value = savedProvider;
-  applyAIProviderUI(savedProvider);
-
-  const savedGeminiKeys = localStorage.getItem(LS_GEMINI_KEYS);
-  if (savedGeminiKeys) {
-    try { geminiKeys = JSON.parse(savedGeminiKeys); renderGeminiCount(); } catch {}
-  }
-
-  const savedOpenAIKeys = localStorage.getItem(LS_OPENAI_KEYS);
-  if (savedOpenAIKeys) {
-    try { openaiKeys = JSON.parse(savedOpenAIKeys); renderOpenAICount(); } catch {}
-  }
+  applyAspectRatioCSS();
 
   const savedSubtitles = localStorage.getItem(LS_SUBTITLES);
   if (savedSubtitles !== null) $('enableSubtitles').value = savedSubtitles;
 
   const savedVideoDuration = Number(localStorage.getItem(LS_VIDEO_DURATION));
   $('videoDuration').value = String(VIDEO_DURATION_OPTIONS.includes(savedVideoDuration) ? savedVideoDuration : 120);
-
-  const savedSceneDuration = Number(localStorage.getItem(LS_SCENE_DURATION));
-  $('sceneDuration').value = String(SCENE_DURATION_OPTIONS.includes(savedSceneDuration) ? savedSceneDuration : 15);
-  syncSceneDurationOptions();
   updateDurationSummary();
 
   const savedTTSSpeed = localStorage.getItem(LS_TTS_SPEED);
-  if (savedTTSSpeed) $('ttsSpeed').value = savedTTSSpeed;
+  $('ttsSpeed').value = TTS_SPEED_OPTIONS.includes(savedTTSSpeed) ? savedTTSSpeed : '1.0';
 
   const cachedLogoName = localStorage.getItem(LS_LOGO_KEY);
   if (cachedLogoName) $('logoName').textContent = cachedLogoName;
@@ -390,157 +407,46 @@ async function initSettings() {
     const s = await api('/api/settings');
     applySettingsFromServer(s);
   } catch {}
-
-  await loadStyles();
 }
 
-// ─── Style management ─────────────────────────────────────────────────────────
-
-async function loadStyles() {
-  try {
-    const styles = await api('/api/styles');
-    const sel = $('styleSelect');
-    sel.innerHTML = '';
-    for (const s of styles) {
-      const opt = document.createElement('option');
-      opt.value = s.id;
-      opt.textContent = s.name;
-      opt.title = s.description || '';
-      sel.appendChild(opt);
-    }
-    // Restore saved selection
-    const saved = localStorage.getItem('pipeline_style_id');
-    if (saved && [...sel.options].some(o => o.value === saved)) {
-      sel.value = saved;
-    }
-    selectedStyleId = Number(sel.value) || null;
-    updateDeleteStyleBtn();
-  } catch {}
-}
-
-function updateDeleteStyleBtn() {
-  const btn = $('btnDeleteStyle');
-  // Hide delete button for style id=1 (built-in default)
-  btn.style.display = (selectedStyleId && selectedStyleId !== 1) ? 'block' : 'none';
-}
-
-async function generateStyle() {
-  const domain = $('styleDomainInput').value.trim();
-  if (!domain) return alert('Nhập lĩnh vực / chủ đề');
-  if (selectedAIProvider === 'chato1' && !chato1Keys.length) return alert('Thiếu Chato1 API keys');
-  if (selectedAIProvider === 'gemini' && !geminiKeys.length) return alert('Thiếu Gemini API keys');
-  if (selectedAIProvider === 'openai' && !openaiKeys.length) return alert('Thiếu OpenAI API keys');
-
-  const btn = $('btnGenStyle');
-  const status = $('styleGenStatus');
-  btn.disabled = true;
-  btn.textContent = '⏳ Đang tạo...';
-  status.textContent = 'AI đang tạo phong cách — có thể mất 15-30 giây...';
-
-  try {
-    const data = await api('/api/styles/generate', 'POST', {
-      domain,
-      aiProvider: selectedAIProvider,
-      chato1Keys: selectedAIProvider === 'chato1' ? chato1Keys : [],
-      geminiKeys: selectedAIProvider === 'gemini' ? geminiKeys : [],
-      openaiKeys: selectedAIProvider === 'openai' ? openaiKeys : [],
-    });
-    if (data.error) throw new Error(data.error);
-    status.textContent = `✓ Đã tạo: "${data.name}"`;
-    await loadStyles();
-    // Auto-select the new style
-    $('styleSelect').value = data.id;
-    selectedStyleId = data.id;
-    localStorage.setItem('pipeline_style_id', data.id);
-    updateDeleteStyleBtn();
-    setTimeout(() => document.getElementById('styleModal').close(), 800);
-  } catch (e) {
-    status.textContent = `✗ Lỗi: ${e.message}`;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '✨ Tạo phong cách';
-  }
-}
-
-// Lưu cấu hình TTS/API/khung hình khi người dùng thay đổi
+// Lưu cấu hình TTS/API khi người dùng thay đổi
 document.addEventListener('DOMContentLoaded', () => {
-  $('ttsProvider').addEventListener('change', () => {
-    const provider = $('ttsProvider').value;
-    localStorage.setItem(LS_TTS_PROVIDER, provider);
-    applyTTSProviderUI(provider);
+  $('btnCrawlUrl').addEventListener('click', crawlUrlToTopic);
+  $('crawlUrl').addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      crawlUrlToTopic();
+    }
   });
-  $('lucylabKey').addEventListener('change', () => {
-    localStorage.setItem(LS_LUCYLAB_KEY, $('lucylabKey').value.trim());
+  $('larvoiceVoiceId').addEventListener('change', () => {
+    localStorage.setItem(LS_LARVOICE_VOICE, $('larvoiceVoiceId').value);
+    const audio = $('voicePreviewAudio');
+    audio.pause();
+    audio.removeAttribute('src');
+    $('btnPreviewVoice').disabled = false;
+    $('btnPreviewVoice').textContent = '▶';
+    $('btnPreviewVoice').dataset.state = 'idle';
   });
-  $('voiceId').addEventListener('change', () => {
-    localStorage.setItem(LS_VOICE_ID, $('voiceId').value.trim());
+  $('btnPreviewVoice').addEventListener('click', previewLarVoice);
+  $('videoObjective').addEventListener('change', () => {
+    updateVideoObjectiveSelection();
+    localStorage.setItem(LS_VIDEO_OBJECTIVE, selectedVideoObjective);
   });
-  $('vbeeKey').addEventListener('change', () => {
-    localStorage.setItem(LS_VBEE_KEY, $('vbeeKey').value.trim());
-  });
-  $('vbeeAppId').addEventListener('change', () => {
-    localStorage.setItem(LS_VBEE_APP_ID, $('vbeeAppId').value.trim());
-  });
-  $('vbeeVoiceCode').addEventListener('change', () => {
-    localStorage.setItem(LS_VBEE_VOICE, $('vbeeVoiceCode').value.trim());
-  });
-  $('outputAspectRatio').addEventListener('change', () => {
-    selectedAspectRatio = $('outputAspectRatio').value;
-    localStorage.setItem(LS_ASPECT_RATIO, selectedAspectRatio);
-    applyAspectRatioCSS(selectedAspectRatio);
-  });
-  $('aiProvider').addEventListener('change', () => {
-    selectedAIProvider = $('aiProvider').value;
-    localStorage.setItem(LS_AI_PROVIDER, selectedAIProvider);
-    applyAIProviderUI(selectedAIProvider);
+  $('useTemplateMode').addEventListener('change', () => {
+    localStorage.setItem(LS_USE_TEMPLATE_MODE, $('useTemplateMode').value);
+    updateTemplateModeUI();
   });
   $('enableSubtitles').addEventListener('change', () => {
     localStorage.setItem(LS_SUBTITLES, $('enableSubtitles').value);
   });
   $('videoDuration').addEventListener('change', () => {
     localStorage.setItem(LS_VIDEO_DURATION, $('videoDuration').value);
-    syncSceneDurationOptions();
-    localStorage.setItem(LS_SCENE_DURATION, $('sceneDuration').value);
-    updateDurationSummary();
-  });
-  $('sceneDuration').addEventListener('change', () => {
-    localStorage.setItem(LS_SCENE_DURATION, $('sceneDuration').value);
     updateDurationSummary();
   });
   $('ttsSpeed').addEventListener('change', () => {
     localStorage.setItem(LS_TTS_SPEED, $('ttsSpeed').value);
   });
-
-  $('styleSelect').addEventListener('change', () => {
-    selectedStyleId = Number($('styleSelect').value) || null;
-    localStorage.setItem('pipeline_style_id', selectedStyleId);
-    updateDeleteStyleBtn();
-  });
-
-  $('btnNewStyle').addEventListener('click', () => {
-    $('styleDomainInput').value = '';
-    $('styleGenStatus').textContent = '';
-    document.getElementById('styleModal').showModal();
-  });
-
-  $('btnDeleteStyle').addEventListener('click', async () => {
-    if (!selectedStyleId || selectedStyleId === 1) return;
-    const name = $('styleSelect').selectedOptions[0]?.textContent;
-    if (!confirm(`Xóa phong cách "${name}"?`)) return;
-    await api(`/api/styles/${selectedStyleId}`, 'DELETE');
-    await loadStyles();
-  });
 });
-
-function renderKeyCount() {
-  $('chato1Count').textContent = chato1Keys.length ? `${chato1Keys.length} keys` : 'Chưa nạp keys';
-}
-function renderGeminiCount() {
-  $('geminiCount').textContent = geminiKeys.length ? `${geminiKeys.length} keys` : 'Chưa nạp keys';
-}
-function renderOpenAICount() {
-  $('openaiCount').textContent = openaiKeys.length ? `${openaiKeys.length} keys` : 'Chưa nạp keys';
-}
 
 function applySettingsFromServer(settings) {
   const logoName = settings.logoName || (settings.logoPath ? basename(settings.logoPath) : 'Chưa chọn');
@@ -548,30 +454,6 @@ function applySettingsFromServer(settings) {
   localStorage.setItem(LS_LOGO_KEY, logoName);
   $('btnClearLogo').style.display = settings.logoPath ? 'inline-flex' : 'none';
 }
-
-// Chato1 file picker
-$('chato1File').onchange = async e => {
-  if (!e.target.files[0]) return;
-  chato1Keys = await loadKeyFile(e.target.files[0]);
-  renderKeyCount();
-  localStorage.setItem(LS_KEYS_KEY, JSON.stringify(chato1Keys));
-};
-
-// Gemini file picker
-$('geminiFile').onchange = async e => {
-  if (!e.target.files[0]) return;
-  geminiKeys = await loadKeyFile(e.target.files[0]);
-  renderGeminiCount();
-  localStorage.setItem(LS_GEMINI_KEYS, JSON.stringify(geminiKeys));
-};
-
-// OpenAI file picker
-$('openaiFile').onchange = async e => {
-  if (!e.target.files[0]) return;
-  openaiKeys = await loadKeyFile(e.target.files[0]);
-  renderOpenAICount();
-  localStorage.setItem(LS_OPENAI_KEYS, JSON.stringify(openaiKeys));
-};
 
 // Logo file picker
 $('logoFile').onchange = async e => {
@@ -659,7 +541,7 @@ async function openProject(id) {
 async function refreshProject() {
   const p = await api(`/api/projects/${currentId}`);
   if (!p || p.error) return;
-  applyAspectRatioCSS(getProjectAspectRatio(p));
+  applyAspectRatioCSS();
 
   $('projTopic').textContent = p.topic;
   $('projDate').textContent  = fmtDate(p.created_at);
@@ -669,9 +551,7 @@ async function refreshProject() {
   const hasFinal    = p.status === 'done';
   const inPreview   = p.status === 'preview';
   const allSceneHtmlReady = p.scenes?.length > 0 && p.scenes.every(s => s.html_done);
-  const allHtmlReady = p.scenes?.length > 0
-    && allSceneHtmlReady
-    && (!p.thumbnail || p.thumbnail.html_done);
+  const allHtmlReady = p.scenes?.length > 0 && allSceneHtmlReady;
   const allRendered = p.scenes?.length > 0 && p.scenes.every(s => s.render_done);
   const showRender  = isError || inPreview || hasFinal || allRendered || allHtmlReady;
   $('btnRender').classList.toggle('hidden', !showRender);
@@ -697,9 +577,6 @@ async function refreshProject() {
   $('sceneGrid').innerHTML = '';
   if (p.scenes?.length) {
     p.scenes.forEach(sc => $('sceneGrid').appendChild(buildSceneCard(sc, p.status)));
-  }
-  if (shouldShowThumbnailCard(p.thumbnail, p.scenes, p.status)) {
-    $('sceneGrid').appendChild(buildThumbnailCard(p.thumbnail, p.status));
   }
 
   if (hasFinal)  showFinalVideo();
@@ -758,52 +635,6 @@ function buildSceneCard(sc, projStatus) {
   return card;
 }
 
-function buildThumbnailCard(thumbnail, projStatus = '') {
-  const card = document.createElement('div');
-  card.className = 'scene-card thumbnail-card';
-  card.id = 'thumbnail-card';
-  const hasImage      = Boolean(thumbnail?.image_done);
-  const hasHtml       = Boolean(thumbnail?.html_done);
-  const isGenerating  = !hasHtml && !hasImage && projStatus === 'running';
-  const badgeClass = hasImage ? 'badge-done' : hasHtml ? 'badge-preview' : isGenerating ? 'badge-generating' : 'badge-pending';
-  const badgeLabel = hasImage ? '✓ Ảnh' : hasHtml ? '◉ HTML' : isGenerating ? '⟳ HTML' : '○ Chờ';
-  let previewContent;
-  if (hasImage) {
-    previewContent = `<img class="thumbnail-preview" src="/api/projects/${currentId}/thumbnail/image?t=${Date.now()}" alt="Thumbnail preview">`;
-  } else if (hasHtml) {
-    previewContent = `<div class="iframe-loader" id="il-thumbnail">⏳ Đang tải...</div>
-      <iframe src="/api/projects/${currentId}/thumbnail/preview?t=${Date.now()}" scrolling="no"
-        onload="$('il-thumbnail').style.display='none'; updateAllPreviewScales();"
-        onerror="$('il-thumbnail').textContent='✗ Lỗi tải'"
-      ></iframe>`;
-  } else if (isGenerating) {
-    previewContent = `<div class="iframe-placeholder iframe-generating"><span class="scene-gen-spin">⟳</span>Đang tạo thumbnail...</div>`;
-  } else {
-    previewContent = `<div class="iframe-placeholder">Chưa có thumbnail</div>`;
-  }
-  card.innerHTML = `
-    <div class="sc-top">
-      <span class="sc-num">Thumbnail</span>
-      <span class="sc-badge ${badgeClass}">${badgeLabel}</span>
-    </div>
-    <div class="iframe-wrap" id="iw-thumbnail">${previewContent}</div>
-    <p class="sc-voice">${esc(thumbnail?.title ?? 'Thumbnail video')}</p>
-    <div class="sc-btns">
-      <button class="btn-edit" onclick="openThumbnailEditor()">✏️ Sửa</button>
-      ${hasImage ? `<button class="btn-ghost-sm" onclick="downloadThumbnail()">⬇ Tải</button>` : ''}
-    </div>
-  `;
-  return card;
-}
-
-function shouldShowThumbnailCard(thumbnail, scenes = [], projStatus = '') {
-  if (!thumbnail?.title && !thumbnail?.prompt) return false;
-  // Hiện card chờ ngay khi có data thumbnail và đang chạy pipeline
-  if (projStatus === 'running') return Array.isArray(scenes) && scenes.length > 0;
-  // Các trạng thái khác: hiện khi html đã xong
-  return Boolean(thumbnail?.html_done);
-}
-
 function reloadSceneCard(stt) {
   api(`/api/projects/${currentId}`).then(p => {
     const sc = p?.scenes?.find(s => s.stt === stt);
@@ -814,31 +645,15 @@ function reloadSceneCard(stt) {
       old.replaceWith(card);
     } else {
       // Card chưa có trong DOM — chèn đúng vị trí theo stt
-      const existing = [...$('sceneGrid').querySelectorAll('.scene-card:not(.thumbnail-card)')];
+      const existing = [...$('sceneGrid').querySelectorAll('.scene-card')];
       const before = existing.find(c => Number(c.id.replace('sc-', '')) > stt);
       if (before) {
         $('sceneGrid').insertBefore(card, before);
       } else {
-        const thumb = $('thumbnail-card');
-        if (thumb) $('sceneGrid').insertBefore(card, thumb);
-        else $('sceneGrid').appendChild(card);
+        $('sceneGrid').appendChild(card);
       }
     }
     requestAnimationFrame(updateAllPreviewScales);
-  });
-}
-
-function reloadThumbnailCard() {
-  api(`/api/projects/${currentId}`).then(p => {
-    const old = $('thumbnail-card');
-    if (shouldShowThumbnailCard(p?.thumbnail, p?.scenes, p?.status)) {
-      const card = buildThumbnailCard(p.thumbnail, p.status);
-      if (old) old.replaceWith(card);
-      else $('sceneGrid').appendChild(card);
-      requestAnimationFrame(updateAllPreviewScales);
-      return;
-    }
-    if (old) old.remove();
   });
 }
 
@@ -885,15 +700,7 @@ async function continueProject() {
   document.querySelectorAll('.step.error').forEach(el => el.classList.replace('error', 'active'));
   setCurrentOp(2, 'Tiếp tục pipeline từ chỗ bị lỗi...');
   const resp = await api(`/api/projects/${currentId}/resume`, 'POST', {
-    chato1Keys:   chato1Keys.length  ? chato1Keys  : undefined,
-    openaiKeys:   openaiKeys.length  ? openaiKeys  : undefined,
-    geminiKeys:   geminiKeys.length  ? geminiKeys  : undefined,
-    ttsProvider:  $('ttsProvider').value  || undefined,
-    lucylabKey:   $('lucylabKey').value.trim()   || undefined,
-    voiceId:      $('voiceId').value.trim()      || undefined,
-    vbeeKey:      $('vbeeKey').value.trim()      || undefined,
-    vbeeAppId:    $('vbeeAppId').value.trim()    || undefined,
-    vbeeVoiceCode: $('vbeeVoiceCode').value.trim() || undefined,
+    larvoiceVoiceId: Number($('larvoiceVoiceId').value) || 1,
     ttsSpeed:     Number($('ttsSpeed').value) || 1.0,
   });
   if (resp?.error) {
@@ -906,44 +713,89 @@ async function continueProject() {
 
 
 // ─── Scene editor ─────────────────────────────────────────────────────────────
+function setEditorPreviewUnavailable(message = 'Chưa có HTML') {
+  const loader = $('previewLoader');
+  const frame = $('previewFrame');
+  if (frame) {
+    frame.removeAttribute('src');
+    frame.style.visibility = 'hidden';
+  }
+  if (loader) {
+    loader.textContent = message;
+    loader.style.display = 'flex';
+  }
+}
+
+function loadEditorPreview(stt) {
+  const loader = $('previewLoader');
+  const frame = $('previewFrame');
+  if (loader) {
+    loader.textContent = '⏳ Đang tải...';
+    loader.style.display = 'flex';
+  }
+  if (frame) {
+    frame.style.visibility = 'visible';
+    frame.src = `/api/projects/${currentId}/preview/${stt}?t=${Date.now()}`;
+  }
+}
+
 async function openEditor(stt) {
   editingTargetType = 'scene';
   editingStt = stt;
   editorBusy = false;
+  editingUsesTemplateMode = true;
   $('editVoiceLabel').textContent = 'Voice (lời dẫn)';
-  $('editVisualLabel').textContent = 'Visual (mô tả AI tạo HTML)';
+  $('editTemplateDataLabel').classList.remove('hidden');
+  $('editTemplateData').classList.remove('hidden');
   $('modalTitle').textContent = `Chỉnh sửa Cảnh ${stt}`;
   $('editVoice').value  = '';
-  $('editVisual').value = '';
+  $('editTemplateData').value = '';
   $('editHtml').value   = '';
-  $('previewLoader').style.display = 'flex';
-  $('previewFrame').src = `/api/projects/${currentId}/preview/${stt}?t=${Date.now()}`;
+  setEditorPreviewUnavailable('Đang đọc dữ liệu cảnh...');
   resetEditorButtons();
   $('editorModal').showModal();
   const sc = await api(`/api/projects/${currentId}/scenes/${stt}`);
+  editingUsesTemplateMode = sc.useTemplateMode !== false && sc.generationMode !== 'ai-html';
+  $('editTemplateDataLabel').textContent = editingUsesTemplateMode ? 'TemplateData JSON' : 'HTML Spec JSON';
   $('editVoice').value  = sc.voice  ?? '';
-  $('editVisual').value = sc.visual ?? '';
+  $('editTemplateData').value = JSON.stringify(
+    editingUsesTemplateMode
+      ? (sc.templateData || {})
+      : { htmlSpec: sc.htmlSpec || {}, sfxPlan: sc.sfxPlan || [] },
+    null,
+    2
+  );
   $('editHtml').value   = sc.html   ?? '';
+  if ((sc.html || '').trim()) {
+    loadEditorPreview(stt);
+  } else {
+    setEditorPreviewUnavailable(sc.html_done ? 'Không tìm thấy file HTML' : 'Chưa có HTML');
+  }
+  resetEditorButtons();
 }
 
-async function openThumbnailEditor() {
-  editingTargetType = 'thumbnail';
-  editingStt = 'thumbnail';
-  editorBusy = false;
-  $('editVoiceLabel').textContent = 'Tiêu đề thumbnail';
-  $('editVisualLabel').textContent = 'Prompt thumbnail';
-  $('modalTitle').textContent = 'Chỉnh sửa Thumbnail';
-  $('editVoice').value  = '';
-  $('editVisual').value = '';
-  $('editHtml').value   = '';
-  $('previewLoader').style.display = 'flex';
-  $('previewFrame').src = `/api/projects/${currentId}/thumbnail/preview?t=${Date.now()}`;
-  resetEditorButtons();
-  $('editorModal').showModal();
-  const thumbnail = await api(`/api/projects/${currentId}/thumbnail`);
-  $('editVoice').value  = thumbnail.title  ?? '';
-  $('editVisual').value = thumbnail.prompt ?? '';
-  $('editHtml').value   = thumbnail.html   ?? '';
+function readTemplateDataEditor() {
+  const raw = $('editTemplateData').value.trim();
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('JSON mô tả cảnh phải là object');
+    }
+    return parsed;
+  } catch (error) {
+    throw new Error(`JSON mô tả cảnh không hợp lệ: ${error.message}`);
+  }
+}
+
+function readSceneJsonEditor() {
+  const parsed = readTemplateDataEditor();
+  if (editingUsesTemplateMode) return { templateData: parsed };
+  const { sfxPlan, htmlSpec, ...rest } = parsed;
+  return {
+    htmlSpec: htmlSpec && typeof htmlSpec === 'object' && !Array.isArray(htmlSpec) ? htmlSpec : rest,
+    sfxPlan: Array.isArray(sfxPlan) ? sfxPlan : [],
+  };
 }
 
 function closeEditor() {
@@ -960,12 +812,11 @@ function disableEditorBtns(disabled) {
 
 function resetEditorButtons() {
   disableEditorBtns(false);
-  const isThumbnail = editingTargetType === 'thumbnail';
-  $('btnRegenVoice').classList.toggle('hidden', isThumbnail);
-  $('btnRegenAI').textContent    = isThumbnail ? '🤖 AI tạo lại Thumbnail' : '🤖 AI tạo lại HTML';
+  $('btnRegenVoice').classList.remove('hidden');
+  $('btnRegenAI').textContent    = editingUsesTemplateMode ? '🧩 Compose lại HTML' : '🤖 AI tạo lại HTML';
   $('btnSaveHtml').textContent   = '💾 Lưu HTML';
-  $('btnRerender').textContent   = isThumbnail ? '⬇ Tải Thumbnail' : '🎬 Render lại cảnh này';
-  $('btnEditHtmlAI').textContent = isThumbnail ? '✏️ Sửa Thumbnail với AI' : '✏️ Sửa HTML với AI';
+  $('btnRerender').textContent   = '🎬 Render lại cảnh này';
+  $('btnEditHtmlAI').textContent = '✏️ Sửa HTML với AI';
 }
 
 async function regenSceneVoice() {
@@ -977,11 +828,19 @@ async function regenSceneVoice() {
   disableEditorBtns(true);
   $('btnRegenVoice').textContent = '⏳ Đang tạo TTS + HTML...';
 
-  // Lưu voice + visual mới vào DB/state trước
-  await api(`/api/projects/${currentId}/scenes/${editingStt}`, 'PUT', {
-    voice:  newVoice,
-    visual: $('editVisual').value,
-  });
+  // Lưu voice + JSON mô tả cảnh mới vào DB/state trước
+  let sceneJson;
+  try {
+    sceneJson = readSceneJsonEditor();
+    await api(`/api/projects/${currentId}/scenes/${editingStt}`, 'PUT', {
+      voice:  newVoice,
+      ...sceneJson,
+    });
+  } catch (error) {
+    editorBusy = false;
+    resetEditorButtons();
+    return alert(error.message);
+  }
 
   const resp = await api(`/api/projects/${currentId}/scenes/${editingStt}/regen-voice`, 'POST', {
     voice: newVoice,
@@ -997,41 +856,33 @@ async function regenSceneVoice() {
   closeEditor();
 }
 
-async function regenSceneAI() {
+async function composeSceneHtml() {
   if (editorBusy) return;
-  if (editingTargetType === 'thumbnail') {
-    editorBusy = true;
-    disableEditorBtns(true);
-    $('btnRegenAI').textContent = '⏳ Đang tạo...';
-    await api(`/api/projects/${currentId}/thumbnail`, 'PUT', {
-      title: $('editVoice').value,
-      prompt: $('editVisual').value,
-    });
-    const resp = await api(`/api/projects/${currentId}/thumbnail/regen`, 'POST');
-    if (resp?.error) {
-      editorBusy = false;
-      resetEditorButtons();
-      return alert(resp.error);
-    }
-    appendLog('[B5] Đang tạo lại thumbnail ở chế độ nền...');
-    closeEditor();
-    return;
-  }
   const stt = editingStt;
   editorBusy = true;
   disableEditorBtns(true);
-  $('btnRegenAI').textContent = '⏳ Đang tạo...';
-  await api(`/api/projects/${currentId}/scenes/${stt}`, 'PUT', {
-    voice:  $('editVoice').value,
-    visual: $('editVisual').value,
-  });
+  $('btnRegenAI').textContent = '⏳ Đang compose...';
+  let sceneJson;
+  try {
+    sceneJson = readSceneJsonEditor();
+    await api(`/api/projects/${currentId}/scenes/${stt}`, 'PUT', {
+      voice:  $('editVoice').value,
+      ...sceneJson,
+    });
+  } catch (error) {
+    editorBusy = false;
+    resetEditorButtons();
+    return alert(error.message);
+  }
   const resp = await api(`/api/projects/${currentId}/scenes/${stt}/regen`, 'POST');
   if (resp?.error) {
     editorBusy = false;
     resetEditorButtons();
     return alert(resp.error);
   }
-  markSceneHtmlBusy(stt, `[B5] Đang tạo lại HTML cảnh ${stt} ở chế độ nền...`);
+  markSceneHtmlBusy(stt, editingUsesTemplateMode
+    ? `[B5] Đang compose lại HTML cảnh ${stt} từ TemplateData...`
+    : `[B5] Đang gọi AI tạo lại HTML cảnh ${stt} từ htmlSpec...`);
   closeEditor();
 }
 
@@ -1041,64 +892,60 @@ async function editSceneHtmlAI() {
   if (!prompt) return alert('Vui lòng nhập mô tả chỉnh sửa.');
   const currentHtml = $('editHtml').value.trim();
   if (!currentHtml) return alert('Không có HTML hiện tại để sửa.');
+  let sceneJson;
+  try {
+    sceneJson = readSceneJsonEditor();
+  } catch (error) {
+    return alert(error.message);
+  }
   editorBusy = true;
   disableEditorBtns(true);
   $('btnEditHtmlAI').textContent = '⏳ Đang sửa...';
-  if (editingTargetType === 'scene') {
-    markSceneHtmlBusy(editingStt, `[B5] Đang AI chỉnh sửa HTML cảnh ${editingStt}...`);
-  }
-  const endpoint = editingTargetType === 'thumbnail'
-    ? `/api/projects/${currentId}/thumbnail/edit-html`
-    : `/api/projects/${currentId}/scenes/${editingStt}/edit-html`;
-  const resp = await api(endpoint, 'POST', {
+  markSceneHtmlBusy(editingStt, `[B5] Đang AI chỉnh sửa HTML cảnh ${editingStt}...`);
+  const resp = await api(`/api/projects/${currentId}/scenes/${editingStt}/edit-html`, 'POST', {
     editPrompt: prompt,
     currentHtml,
   });
   editorBusy = false;
   if (resp?.error) {
-    if (editingTargetType === 'scene') unmarkSceneHtmlBusy(editingStt);
+    unmarkSceneHtmlBusy(editingStt);
     resetEditorButtons();
     return alert(resp.error);
   }
   $('editHtml').value = resp.html;
   $('editHtmlPrompt').value = '';
-  $('previewLoader').style.display = 'flex';
-  if (editingTargetType === 'thumbnail') {
-    await api(`/api/projects/${currentId}/thumbnail`, 'PUT', {
-      title:  $('editVoice').value,
-      prompt: $('editVisual').value,
-      html:   resp.html,
-    });
-    $('previewFrame').src = `/api/projects/${currentId}/thumbnail/preview?t=${Date.now()}`;
-    reloadThumbnailCard();
-  } else {
-    await api(`/api/projects/${currentId}/scenes/${editingStt}`, 'PUT', {
-      voice:  $('editVoice').value,
-      visual: $('editVisual').value,
-      html:   resp.html,
-    });
-    unmarkSceneHtmlBusy(editingStt);
-    $('previewFrame').src = `/api/projects/${currentId}/preview/${editingStt}?t=${Date.now()}`;
-    reloadSceneCard(editingStt);
-  }
+  await api(`/api/projects/${currentId}/scenes/${editingStt}`, 'PUT', {
+    voice:  $('editVoice').value,
+    ...sceneJson,
+    html:   resp.html,
+  });
+  unmarkSceneHtmlBusy(editingStt);
+  loadEditorPreview(editingStt);
+  reloadSceneCard(editingStt);
   resetEditorButtons();
-  appendLog(editingTargetType === 'thumbnail' ? '✓ AI đã sửa thumbnail' : `✓ AI đã sửa HTML cảnh ${editingStt}`);
+  appendLog(`✓ AI đã sửa HTML cảnh ${editingStt}`);
 }
 
 function reloadPreviewIfOpen(stt) {
   if (editingStt !== stt) return;
-  $('previewLoader').style.display = 'flex';
-  const previewUrl = stt === 'thumbnail'
-    ? `/api/projects/${currentId}/thumbnail/preview?t=${Date.now()}`
-    : `/api/projects/${currentId}/preview/${stt}?t=${Date.now()}`;
-  const dataUrl = stt === 'thumbnail'
-    ? `/api/projects/${currentId}/thumbnail`
-    : `/api/projects/${currentId}/scenes/${stt}`;
-  $('previewFrame').src = previewUrl;
-  api(dataUrl).then(sc => {
-    $('editVoice').value = sc.title ?? sc.voice ?? '';
-    $('editVisual').value = sc.prompt ?? sc.visual ?? '';
+  setEditorPreviewUnavailable('Đang cập nhật cảnh...');
+  api(`/api/projects/${currentId}/scenes/${stt}`).then(sc => {
+    editingUsesTemplateMode = sc.useTemplateMode !== false && sc.generationMode !== 'ai-html';
+    $('editTemplateDataLabel').textContent = editingUsesTemplateMode ? 'TemplateData JSON' : 'HTML Spec JSON';
+    $('editVoice').value = sc.voice ?? '';
+    $('editTemplateData').value = JSON.stringify(
+      editingUsesTemplateMode
+        ? (sc.templateData || {})
+        : { htmlSpec: sc.htmlSpec || {}, sfxPlan: sc.sfxPlan || [] },
+      null,
+      2
+    );
     $('editHtml').value = sc.html ?? '';
+    if ((sc.html || '').trim()) {
+      loadEditorPreview(stt);
+    } else {
+      setEditorPreviewUnavailable(sc.html_done ? 'Không tìm thấy file HTML' : 'Chưa có HTML');
+    }
     editorBusy = false;
     resetEditorButtons();
   });
@@ -1108,44 +955,47 @@ async function saveSceneHtml() {
   if (editorBusy) return;
   disableEditorBtns(true);
   $('btnSaveHtml').textContent = '⏳ Đang lưu...';
-  if (editingTargetType === 'thumbnail') {
-    await api(`/api/projects/${currentId}/thumbnail`, 'PUT', {
-      title:  $('editVoice').value,
-      prompt: $('editVisual').value,
-      html:   $('editHtml').value,
-    });
-  } else {
+  let sceneJson;
+  try {
+    sceneJson = readSceneJsonEditor();
     await api(`/api/projects/${currentId}/scenes/${editingStt}`, 'PUT', {
       voice:  $('editVoice').value,
-      visual: $('editVisual').value,
+      ...sceneJson,
       html:   $('editHtml').value,
     });
+  } catch (error) {
+    resetEditorButtons();
+    return alert(error.message);
   }
-  $('previewLoader').style.display = 'flex';
-  $('previewFrame').src = editingTargetType === 'thumbnail'
-    ? `/api/projects/${currentId}/thumbnail/preview?t=${Date.now()}`
-    : `/api/projects/${currentId}/preview/${editingStt}?t=${Date.now()}`;
-  if (editingTargetType === 'thumbnail') reloadThumbnailCard();
-  else reloadSceneCard(editingStt);
+  if (($('editHtml').value || '').trim()) {
+    loadEditorPreview(editingStt);
+  } else {
+    setEditorPreviewUnavailable('Chưa có HTML');
+  }
+  reloadSceneCard(editingStt);
   resetEditorButtons();
-  appendLog(editingTargetType === 'thumbnail' ? '✓ Đã lưu thumbnail' : `✓ Đã lưu HTML cảnh ${editingStt}`);
+  appendLog(`✓ Đã lưu HTML cảnh ${editingStt}`);
 }
 
 async function rerenderScene() {
   if (editorBusy) return;
-  if (editingTargetType === 'thumbnail') {
-    downloadThumbnail();
-    return;
-  }
   const stt = editingStt;
   editorBusy = true;
   disableEditorBtns(true);
   $('btnRerender').textContent = '⏳ Đang render...';
-  await api(`/api/projects/${currentId}/scenes/${stt}`, 'PUT', {
-    voice:  $('editVoice').value,
-    visual: $('editVisual').value,
-    html:   $('editHtml').value,
-  });
+  let sceneJson;
+  try {
+    sceneJson = readSceneJsonEditor();
+    await api(`/api/projects/${currentId}/scenes/${stt}`, 'PUT', {
+      voice:  $('editVoice').value,
+      ...sceneJson,
+      html:   $('editHtml').value,
+    });
+  } catch (error) {
+    editorBusy = false;
+    resetEditorButtons();
+    return alert(error.message);
+  }
   const resp = await api(`/api/projects/${currentId}/scenes/${stt}/rerender`, 'POST');
   if (resp?.error) {
     editorBusy = false;
@@ -1157,54 +1007,12 @@ async function rerenderScene() {
 }
 
 async function watchScene(stt) {
-  window.open(`/api/projects/${currentId}/scenes/${stt}/video`, '_blank');
-}
-
-function downloadThumbnail() {
-  window.open(`/api/projects/${currentId}/thumbnail/image?download=1`, '_blank');
+  window.open(`/api/projects/${currentId}/scenes/${stt}/video?t=${Date.now()}`, '_blank');
 }
 
 window.addEventListener('resize', () => {
   requestAnimationFrame(updateAllPreviewScales);
 });
-
-// ─── Project assets ───────────────────────────────────────────────────────────
-function getFileType(file) {
-  if (file.name.toLowerCase().endsWith('.gif')) return 'gif';
-  if (file.type.startsWith('video/')) return 'video';
-  return 'image';
-}
-
-function formatRatio(w, h) {
-  if (!w || !h) return '?';
-  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
-  const g = gcd(w, h);
-  const rw = w / g, rh = h / g;
-  const r = rw / rh;
-  if (Math.abs(r - 16/9) < 0.05) return '16:9';
-  if (Math.abs(r - 9/16) < 0.05) return '9:16';
-  if (Math.abs(r - 4/3) < 0.05) return '4:3';
-  if (Math.abs(r - 3/4) < 0.05) return '3:4';
-  if (Math.abs(r - 1)   < 0.03) return '1:1';
-  return `${rw}:${rh}`;
-}
-
-async function getAspectRatio(file, type) {
-  return new Promise(resolve => {
-    const url = URL.createObjectURL(file);
-    if (type === 'video') {
-      const v = document.createElement('video');
-      v.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(formatRatio(v.videoWidth, v.videoHeight)); };
-      v.onerror = () => { URL.revokeObjectURL(url); resolve('?'); };
-      v.src = url;
-    } else {
-      const img = new Image();
-      img.onload  = () => { URL.revokeObjectURL(url); resolve(formatRatio(img.naturalWidth, img.naturalHeight)); };
-      img.onerror = () => { URL.revokeObjectURL(url); resolve('?'); };
-      img.src = url;
-    }
-  });
-}
 
 function sanitizeFilename(originalName) {
   const ext  = originalName.match(/\.[^.]+$/)?.[0]?.toLowerCase() || '';
@@ -1212,111 +1020,152 @@ function sanitizeFilename(originalName) {
   return base.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_{2,}/g, '_').slice(0, 60) + ext;
 }
 
-function renderAssetList() {
-  const el = $('assetList');
-  if (!projectAssets.length) { el.innerHTML = ''; return; }
-  el.innerHTML = projectAssets.map((a, i) => `
-    <div class="asset-item">
-      <input class="asset-item-name" value="${esc(a.name)}" placeholder="Mô tả nội dung file..."
-        oninput="projectAssets[${i}].name=this.value">
-      <span class="asset-item-meta">${a.type} ${a.aspectRatio}</span>
-      <button class="asset-item-del" title="Xoá" onclick="removeAsset(${i})">✕</button>
+function isSupportedImageFile(file) {
+  return /\.(jpe?g|png|webp|gif)$/i.test(file?.name || '');
+}
+
+function imageDisplayName(file) {
+  return String(file?.name || '')
+    .replace(/\.[^.]+$/, '')
+    .replace(/[_-]+/g, ' ')
+    .trim() || 'ảnh upload';
+}
+
+function renderUploadedImageList() {
+  const count = uploadedImageFiles.length;
+  $('imageUploadName').textContent = count ? `${count} ảnh đã chọn` : 'Chưa chọn';
+  $('btnClearImages').style.display = count ? 'inline-flex' : 'none';
+  $('uploadedImageList').innerHTML = uploadedImageFiles.map(file => `
+    <div class="upload-item" title="${esc(file.name)}">
+      <span>${esc(imageDisplayName(file))}</span>
     </div>
   `).join('');
 }
 
-function removeAsset(i) {
-  projectAssets.splice(i, 1);
-  renderAssetList();
-}
-
-$('assetFile').onchange = async e => {
-  const files = Array.from(e.target.files);
+$('imageFiles').onchange = e => {
+  const files = Array.from(e.target.files || []);
   e.target.value = '';
+  if (!files.length) return;
+
+  const next = [...uploadedImageFiles];
+  let skipped = 0;
   for (const file of files) {
-    const type        = getFileType(file);
-    const aspectRatio = await getAspectRatio(file, type);
-    const filename    = sanitizeFilename(file.name);
-    const name        = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ');
-    projectAssets.push({ file, name, type, aspectRatio, filename });
+    if (!isSupportedImageFile(file)) {
+      skipped += 1;
+      continue;
+    }
+    const exists = next.some(item =>
+      item.name === file.name &&
+      item.size === file.size &&
+      item.lastModified === file.lastModified
+    );
+    if (!exists) next.push(file);
+    if (next.length >= 20) break;
   }
-  renderAssetList();
+  uploadedImageFiles = next.slice(0, 20);
+  renderUploadedImageList();
+  if (skipped) alert('Một số file bị bỏ qua. Chỉ hỗ trợ .jpg, .jpeg, .png, .webp, .gif.');
 };
 
-async function uploadProjectAssets(sessionId) {
-  if (!projectAssets.length) return;
+$('btnClearImages').onclick = () => {
+  uploadedImageFiles = [];
+  renderUploadedImageList();
+};
+
+$('musicFile').onchange = e => {
+  const file = e.target.files?.[0];
+  e.target.value = '';
+  if (!file) return;
+
+  backgroundMusic = {
+    file,
+    filename: sanitizeFilename(file.name),
+    name: file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' '),
+  };
+  $('musicName').textContent = backgroundMusic.name;
+  $('btnClearMusic').style.display = 'inline-flex';
+};
+
+$('btnClearMusic').onclick = () => {
+  backgroundMusic = null;
+  $('musicName').textContent = 'Chưa chọn';
+  $('btnClearMusic').style.display = 'none';
+};
+
+async function uploadProjectMusic(sessionId) {
+  if (!backgroundMusic?.file) return;
   const form = new FormData();
-  projectAssets.forEach(a => form.append('files', a.file, a.filename));
-  await fetch(`/api/projects/${sessionId}/upload-assets`, { method: 'POST', body: form });
+  form.append('music', backgroundMusic.file, backgroundMusic.filename);
+  await fetch(`/api/projects/${sessionId}/upload-music`, { method: 'POST', body: form });
+}
+
+async function startProjectRequest(payload) {
+  if (!uploadedImageFiles.length) {
+    return api('/api/start', 'POST', payload);
+  }
+
+  const form = new FormData();
+  form.append('topic', payload.topic);
+  form.append('larvoiceVoiceId', String(payload.larvoiceVoiceId));
+  form.append('videoObjective', payload.videoObjective);
+  form.append('useTemplateMode', payload.useTemplateMode ? 'true' : 'false');
+  form.append('enableSubtitles', payload.enableSubtitles ? 'true' : 'false');
+  form.append('videoDurationSec', String(payload.videoDurationSec));
+  form.append('ttsSpeed', String(payload.ttsSpeed));
+  if (payload.backgroundMusic) {
+    form.append('backgroundMusic', JSON.stringify(payload.backgroundMusic));
+  }
+  for (const file of uploadedImageFiles) {
+    form.append('images', file, file.name);
+  }
+
+  const r = await fetch('/api/start-with-images', { method: 'POST', body: form });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok && !data.error) data.error = `HTTP ${r.status}`;
+  return data;
 }
 
 // ─── Start new project ────────────────────────────────────────────────────────
 $('btnStart').onclick = async () => {
-  let inputMode;
-  try {
-    inputMode = detectInputMode($('topic').value);
-  } catch (error) {
-    return alert(error.message);
+  updateVideoObjectiveSelection();
+  const useTemplateMode = isTemplateModeEnabled();
+  if (useTemplateMode && !AVAILABLE_SCENE_TEMPLATES.length) {
+    return alert('Mục tiêu video đã chọn chưa có template nào. Hãy thêm template vào catalog hoặc chọn Mặc định.');
   }
-  const topic = inputMode.topic;
-  const scriptJson = inputMode.scriptJson;
-  const ttsProvider = $('ttsProvider').value || 'lucylab';
-  const lucylabKey = $('lucylabKey').value.trim();
-  const voiceId    = $('voiceId').value.trim();
-  const vbeeKey = $('vbeeKey').value.trim();
-  const vbeeAppId = $('vbeeAppId').value.trim();
-  const vbeeVoiceCode = $('vbeeVoiceCode').value.trim();
-  const durationPlan = getDurationPlan(Number($('videoDuration').value), Number($('sceneDuration').value));
+  const topic = $('topic').value.trim();
+  const larvoiceVoiceId = Number($('larvoiceVoiceId').value) || 1;
+  const durationPlan = getDurationPlan(Number($('videoDuration').value));
   const ttsSpeed = Number($('ttsSpeed').value) || 1.0;
-  const usingManualScript = inputMode.isManualScript;
-  if (!topic && !usingManualScript) return alert('Nhập chủ đề hoặc dán JSON kịch bản');
-  if (!usingManualScript && selectedAIProvider === 'chato1' && !chato1Keys.length) return alert('Thiếu Chato1 keys');
-  if (!usingManualScript && selectedAIProvider === 'gemini' && !geminiKeys.length) return alert('Thiếu Gemini API keys');
-  if (!usingManualScript && selectedAIProvider === 'openai' && !openaiKeys.length) return alert('Thiếu OpenAI API keys');
-  if (ttsProvider === 'lucylab' && !lucylabKey) return alert('Thiếu LucyLab API key');
-  if (ttsProvider === 'vbee' && !vbeeKey) return alert('Thiếu Vbee API key');
-  if (ttsProvider === 'vbee' && !vbeeAppId) return alert('Thiếu Vbee Project ID');
-  if (ttsProvider === 'vbee' && !vbeeVoiceCode) return alert('Thiếu Vbee Voice ID');
+  if (!topic) return alert('Nhập chủ đề video');
+  if (!larvoiceVoiceId) return alert('Chọn giọng đọc LarVoice');
 
-  localStorage.setItem(LS_TTS_PROVIDER, ttsProvider);
-  localStorage.setItem(LS_LUCYLAB_KEY, lucylabKey);
-  if (voiceId) localStorage.setItem(LS_VOICE_ID, voiceId);
-  localStorage.setItem(LS_VBEE_KEY, vbeeKey);
-  localStorage.setItem(LS_VBEE_APP_ID, vbeeAppId);
-  localStorage.setItem(LS_VBEE_VOICE, vbeeVoiceCode);
+  localStorage.setItem(LS_LARVOICE_VOICE, String(larvoiceVoiceId));
+  localStorage.setItem(LS_VIDEO_OBJECTIVE, selectedVideoObjective);
+  localStorage.setItem(LS_USE_TEMPLATE_MODE, useTemplateMode ? '1' : '0');
 
-  const assetMeta = projectAssets.map(a => ({
-    name: a.name, type: a.type, aspectRatio: a.aspectRatio, filename: a.filename,
-  }));
+  const backgroundMusicMeta = backgroundMusic ? {
+    name: backgroundMusic.name,
+    filename: backgroundMusic.filename,
+  } : undefined;
 
-  const data = await api('/api/start', 'POST', {
+  const data = await startProjectRequest({
     topic,
-    scriptJson,
-    chato1Keys,
-    ttsProvider,
-    lucylabKey,
-    voiceId: voiceId || undefined,
-    vbeeKey: vbeeKey || undefined,
-    vbeeAppId: vbeeAppId || undefined,
-    vbeeVoiceCode: vbeeVoiceCode || undefined,
-    projectAssets: assetMeta.length ? assetMeta : undefined,
-    outputAspectRatio: selectedAspectRatio,
-    aiProvider: selectedAIProvider,
-    geminiKeys: selectedAIProvider === 'gemini' ? geminiKeys : undefined,
-    openaiKeys: selectedAIProvider === 'openai' ? openaiKeys : undefined,
+    larvoiceVoiceId,
+    backgroundMusic: backgroundMusicMeta,
+    videoObjective: selectedVideoObjective,
+    useTemplateMode,
     enableSubtitles: $('enableSubtitles').value === '1',
-    styleId: selectedStyleId || undefined,
     videoDurationSec: durationPlan.videoDurationSec,
-    sceneDurationSec: durationPlan.sceneDurationSec,
     ttsSpeed,
   });
   if (data.error) return alert(data.error);
 
   currentId = data.sessionId;
+  uploadedImageFiles = [];
+  renderUploadedImageList();
 
-  // Upload asset files in background — B5 won't start for ~1-2 minutes
-  if (projectAssets.length) {
-    uploadProjectAssets(currentId).catch(e => console.warn('Asset upload:', e));
+  if (backgroundMusic) {
+    uploadProjectMusic(currentId).catch(e => console.warn('Music upload:', e));
   }
 
   await updateSidebar();
@@ -1354,11 +1203,6 @@ async function api(url, method = 'GET', body = null) {
   const r = await fetch(url, opts);
   if (r.status === 204) return {};
   return r.json().catch(() => ({}));
-}
-
-async function loadKeyFile(file) {
-  const text = await file.text();
-  return text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
 }
 
 function esc(s) {
@@ -1408,5 +1252,4 @@ async function deleteAllProjectsUI() {
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 connectWS();
 initSettings();
-renderKeyCount();
 updateSidebar();

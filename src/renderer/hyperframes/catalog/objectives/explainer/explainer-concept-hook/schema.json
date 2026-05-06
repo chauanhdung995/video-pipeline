@@ -1,0 +1,38 @@
+{
+  "template": "explainer-concept-hook",
+  "description": "Opening explainer scene that names a concept, frames why it matters, and gives a compact definition.",
+  "templateData": {
+    "kicker": "GIẢI THÍCH NHANH",
+    "title": "Vì sao phí giao dịch tăng?",
+    "subtitle": "Một ý phức tạp sẽ dễ hiểu hơn khi tách thành từng lớp.",
+    "coreTerm": "Tắc nghẽn mạng",
+    "definition": "Khi quá nhiều giao dịch cùng tranh chỗ, người trả phí cao hơn sẽ được xử lý trước.",
+    "icon": "spark",
+    "background": {
+      "type": "gradient",
+      "colors": ["#08111f", "#15243a"],
+      "accent": "#22d3ee",
+      "mint": "#34d399",
+      "opacity": 0.16
+    },
+    "blockRefs": ["kinetic-type", "shimmer-sweep", "grain-overlay"],
+    "appearanceOrder": ["title", "subtitle", "coreTerm", "definition"],
+    "timingPhrases": {
+      "title": "phí giao dịch tăng",
+      "subtitle": "tách thành từng lớp",
+      "coreTerm": "tắc nghẽn mạng",
+      "definition": "trả phí cao hơn"
+    },
+    "sfx": {
+      "intro": 0.08,
+      "term": "tắc nghẽn mạng",
+      "definition": "trả phí cao hơn"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

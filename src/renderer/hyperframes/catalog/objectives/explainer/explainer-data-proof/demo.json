@@ -1,0 +1,42 @@
+{
+  "objective": "explainer",
+  "template": "explainer-data-proof",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Số liệu nói gì? Trong 6 tháng, lưu lượng tăng 3x. Khi lưu lượng tăng nhanh hơn năng lực xử lý, phí bắt đầu phản ứng theo cấp số nhân.",
+      "ttsVoice": "Số liệu nói gì? Trong 6 tháng, lưu lượng tăng 3x. Khi lưu lượng tăng nhanh hơn năng lực xử lý, phí bắt đầu phản ứng theo cấp số nhân.",
+      "template": "explainer-data-proof",
+      "templateData": {
+        "kicker": "BẰNG CHỨNG",
+        "title": "Số liệu nói gì?",
+        "metric": "3x",
+        "metricLabel": "lưu lượng sau 6 tháng",
+        "insight": "Khi lưu lượng tăng nhanh hơn năng lực xử lý, phí bắt đầu phản ứng theo cấp số nhân.",
+        "labels": ["T1", "T2", "T3", "T4", "T5"],
+        "dataPoints": [18, 24, 35, 55, 72],
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["data-chart", "nyt-graph", "shimmer-sweep"],
+        "appearanceOrder": ["title", "chart", "metric", "insight"],
+        "timingPhrases": {
+          "title": "số liệu",
+          "chart": "lưu lượng",
+          "metric": "3x",
+          "insight": "cấp số nhân"
+        },
+        "sfx": {
+          "chart": "lưu lượng",
+          "metric": "3x",
+          "insight": "cấp số nhân"
+        }
+      },
+      "visual": "LAYOUT: explainer data proof. BACKGROUND: ink navy with clear chart grid. MAIN ELEMENTS: kicker, title, metric card, line chart, insight. APPEARANCE ORDER: title -> chart -> metric -> insight. TEXT OVERLAY: \"3x\"."
+    }
+  ]
+}

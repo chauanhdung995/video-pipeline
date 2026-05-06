@@ -1,0 +1,42 @@
+{
+  "template": "feature-list",
+  "description": "Short list of features, reasons, or steps.",
+  "templateData": {
+    "title": "Ba điểm cần nhớ",
+    "bullets": [
+      "ý 1",
+      "ý 2",
+      "ý 3"
+    ],
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "title",
+      "bullet-1",
+      "bullet-2",
+      "bullet-3"
+    ],
+    "timingPhrases": {
+      "title": "điểm cần nhớ"
+    },
+    "sfx": {
+      "card": "điểm cần nhớ",
+      "item1": "ý 1",
+      "item2": "ý 2",
+      "item3": "ý 3"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

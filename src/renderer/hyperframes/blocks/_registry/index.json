@@ -1,0 +1,748 @@
+{
+  "source": "https://raw.githubusercontent.com/heygen-com/hyperframes/main/registry",
+  "syncedAt": "2026-05-02T10:16:02.181Z",
+  "counts": {
+    "blocks": 43,
+    "components": 3,
+    "examples": 8,
+    "files": 83
+  },
+  "items": [
+    {
+      "name": "warm-grain",
+      "type": "hyperframes:example",
+      "title": "Warm Grain",
+      "description": "Cream aesthetic with grain texture",
+      "tags": [],
+      "files": [
+        "examples/warm-grain/compositions/captions.html",
+        "examples/warm-grain/compositions/graphics.html",
+        "examples/warm-grain/compositions/intro.html",
+        "examples/warm-grain/index.html"
+      ]
+    },
+    {
+      "name": "play-mode",
+      "type": "hyperframes:example",
+      "title": "Play Mode",
+      "description": "Playful elastic animations",
+      "tags": [],
+      "files": [
+        "examples/play-mode/compositions/captions.html",
+        "examples/play-mode/compositions/intro.html",
+        "examples/play-mode/compositions/stats.html",
+        "examples/play-mode/index.html"
+      ]
+    },
+    {
+      "name": "swiss-grid",
+      "type": "hyperframes:example",
+      "title": "Swiss Grid",
+      "description": "Structured grid layout",
+      "tags": [],
+      "files": [
+        "examples/swiss-grid/assets/swiss-grid.svg",
+        "examples/swiss-grid/compositions/captions.html",
+        "examples/swiss-grid/compositions/graphics.html",
+        "examples/swiss-grid/compositions/intro.html",
+        "examples/swiss-grid/index.html"
+      ]
+    },
+    {
+      "name": "vignelli",
+      "type": "hyperframes:example",
+      "title": "Vignelli",
+      "description": "Bold typography with red accents",
+      "tags": [],
+      "files": [
+        "examples/vignelli/compositions/captions.html",
+        "examples/vignelli/compositions/overlays.html",
+        "examples/vignelli/index.html"
+      ]
+    },
+    {
+      "name": "decision-tree",
+      "type": "hyperframes:example",
+      "title": "Decision Tree",
+      "description": "Animated flowchart with branching paths",
+      "tags": [],
+      "files": [
+        "examples/decision-tree/compositions/decision_tree.html",
+        "examples/decision-tree/index.html"
+      ]
+    },
+    {
+      "name": "kinetic-type",
+      "type": "hyperframes:example",
+      "title": "Kinetic Type",
+      "description": "Bold kinetic typography promo",
+      "tags": [],
+      "files": [
+        "examples/kinetic-type/compositions/main-graphics.html",
+        "examples/kinetic-type/index.html"
+      ]
+    },
+    {
+      "name": "product-promo",
+      "type": "hyperframes:example",
+      "title": "Product Promo",
+      "description": "Multi-scene product showcase with SVG assets",
+      "tags": [],
+      "files": [
+        "examples/product-promo/assets/figma-cursors.svg",
+        "examples/product-promo/assets/figma-logo-pieces.svg",
+        "examples/product-promo/assets/figma-logo-pills.svg",
+        "examples/product-promo/compositions/scene1-logo-intro.html",
+        "examples/product-promo/compositions/scene2-4-canvas.html",
+        "examples/product-promo/compositions/scene5-logo-outro.html",
+        "examples/product-promo/index.html"
+      ]
+    },
+    {
+      "name": "nyt-graph",
+      "type": "hyperframes:example",
+      "title": "NYT Graph",
+      "description": "Animated data chart in print editorial style",
+      "tags": [],
+      "files": [
+        "examples/nyt-graph/compositions/nyt-chart.html",
+        "examples/nyt-graph/index.html"
+      ]
+    },
+    {
+      "name": "data-chart",
+      "type": "hyperframes:block",
+      "title": "Data Chart",
+      "description": "Animated bar + line chart with staggered reveal, NYT-style typography, and value labels",
+      "tags": [
+        "data",
+        "chart",
+        "statistics"
+      ],
+      "files": [
+        "data-chart.html"
+      ]
+    },
+    {
+      "name": "flowchart",
+      "type": "hyperframes:block",
+      "title": "Flowchart",
+      "description": "Animated decision tree with SVG connectors, sticky-note nodes, cursor interaction, and typing correction",
+      "tags": [
+        "diagram",
+        "flowchart",
+        "interactive"
+      ],
+      "files": [
+        "flowchart.html"
+      ]
+    },
+    {
+      "name": "logo-outro",
+      "type": "hyperframes:block",
+      "title": "Logo Outro",
+      "description": "Cinematic logo reveal with piece-by-piece assembly, glow bloom, tagline fade-in, and URL pill",
+      "tags": [
+        "branding",
+        "outro",
+        "logo"
+      ],
+      "files": [
+        "logo-outro.html"
+      ]
+    },
+    {
+      "name": "grain-overlay",
+      "type": "hyperframes:component",
+      "title": "Grain Overlay",
+      "description": "Animated film grain texture overlay using CSS keyframes — adds warmth and analog character to any composition",
+      "tags": [
+        "texture",
+        "grain",
+        "overlay",
+        "film"
+      ],
+      "files": [
+        "components/grain-overlay.html"
+      ]
+    },
+    {
+      "name": "shimmer-sweep",
+      "type": "hyperframes:component",
+      "title": "Shimmer Sweep",
+      "description": "Animated light sweep across text or elements using a CSS gradient mask — ideal for AI accents and premium reveals",
+      "tags": [
+        "text",
+        "shimmer",
+        "highlight",
+        "effect"
+      ],
+      "files": [
+        "components/shimmer-sweep.html"
+      ]
+    },
+    {
+      "name": "grid-pixelate-wipe",
+      "type": "hyperframes:component",
+      "title": "Grid Pixelate Wipe",
+      "description": "Transition effect where the screen dissolves into a grid of squares that fade out with staggered timing — use between scenes",
+      "tags": [
+        "transition",
+        "wipe",
+        "grid",
+        "pixelate"
+      ],
+      "files": [
+        "components/grid-pixelate-wipe.html"
+      ]
+    },
+    {
+      "name": "instagram-follow",
+      "type": "hyperframes:block",
+      "title": "Instagram Follow",
+      "description": "Animated Instagram follow overlay with profile card and follow button",
+      "tags": [
+        "social",
+        "overlay",
+        "instagram"
+      ],
+      "files": [
+        "instagram-follow.html",
+        "assets/avatar.jpg"
+      ]
+    },
+    {
+      "name": "tiktok-follow",
+      "type": "hyperframes:block",
+      "title": "TikTok Follow",
+      "description": "Animated TikTok follow overlay with profile card and follow button",
+      "tags": [
+        "social",
+        "overlay",
+        "tiktok"
+      ],
+      "files": [
+        "tiktok-follow.html",
+        "assets/avatar.jpg"
+      ]
+    },
+    {
+      "name": "yt-lower-third",
+      "type": "hyperframes:block",
+      "title": "YouTube Lower Third",
+      "description": "Animated YouTube subscribe lower third with avatar and channel info",
+      "tags": [
+        "social",
+        "overlay",
+        "youtube"
+      ],
+      "files": [
+        "yt-lower-third.html",
+        "assets/avatar.jpg"
+      ]
+    },
+    {
+      "name": "x-post",
+      "type": "hyperframes:block",
+      "title": "X Post Card",
+      "description": "Animated X/Twitter post card overlay with engagement metrics",
+      "tags": [
+        "social",
+        "overlay",
+        "twitter"
+      ],
+      "files": [
+        "x-post.html"
+      ]
+    },
+    {
+      "name": "reddit-post",
+      "type": "hyperframes:block",
+      "title": "Reddit Post Card",
+      "description": "Animated Reddit post card overlay with upvotes and comments",
+      "tags": [
+        "social",
+        "overlay",
+        "reddit"
+      ],
+      "files": [
+        "reddit-post.html"
+      ]
+    },
+    {
+      "name": "spotify-card",
+      "type": "hyperframes:block",
+      "title": "Spotify Now Playing",
+      "description": "Animated Spotify now-playing card with album art and progress bar",
+      "tags": [
+        "social",
+        "overlay",
+        "spotify"
+      ],
+      "files": [
+        "spotify-card.html"
+      ]
+    },
+    {
+      "name": "macos-notification",
+      "type": "hyperframes:block",
+      "title": "macOS Notification",
+      "description": "Animated macOS-style notification banner with app icon and message",
+      "tags": [
+        "social",
+        "overlay",
+        "notification"
+      ],
+      "files": [
+        "macos-notification.html"
+      ]
+    },
+    {
+      "name": "app-showcase",
+      "type": "hyperframes:block",
+      "title": "App Showcase",
+      "description": "Fitness app product showcase with three floating smartphone screens",
+      "tags": [
+        "showcase",
+        "app",
+        "3d"
+      ],
+      "files": [
+        "app-showcase.html"
+      ]
+    },
+    {
+      "name": "north-korea-locked-down",
+      "type": "hyperframes:block",
+      "title": "North Korea Locked Down",
+      "description": "Realistic map zoom into North Korea with a red scribble circle, locked-down pop-up label, and reddish editorial wash.",
+      "tags": [
+        "showcase",
+        "map",
+        "annotation",
+        "youtube",
+        "kinetic"
+      ],
+      "files": [
+        "north-korea-locked-down.html",
+        "assets/korea-map.png"
+      ]
+    },
+    {
+      "name": "apple-money-count",
+      "type": "hyperframes:block",
+      "title": "Apple Money Count",
+      "description": "Apple-style finance counter that counts from $0 to $10,000, flashes green, and bursts money icons with sound.",
+      "tags": [
+        "showcase",
+        "finance",
+        "kinetic",
+        "youtube",
+        "sfx"
+      ],
+      "files": [
+        "apple-money-count.html",
+        "assets/sfx-production.wav"
+      ]
+    },
+    {
+      "name": "goonvpn-youtube-spot",
+      "type": "hyperframes:block",
+      "title": "GoonVPN YouTube Spot",
+      "description": "Snappy Apple-style YouTube insert showing a phone finding and installing a fictional VPN app with sound effects.",
+      "tags": [
+        "app",
+        "showcase",
+        "youtube",
+        "sfx"
+      ],
+      "files": [
+        "goonvpn-youtube-spot.html",
+        "assets/goonvpn-sfx.wav"
+      ]
+    },
+    {
+      "name": "nyc-paris-flight",
+      "type": "hyperframes:block",
+      "title": "NYC Paris Flight",
+      "description": "Apple-style realistic map animation with a plane flying from New York to Paris, marker circle, landing pop, and sound effects.",
+      "tags": [
+        "showcase",
+        "travel",
+        "map",
+        "youtube",
+        "sfx"
+      ],
+      "files": [
+        "nyc-paris-flight.html",
+        "assets/map-nyc-paris.png",
+        "assets/sfx-mix.wav"
+      ]
+    },
+    {
+      "name": "ui-3d-reveal",
+      "type": "hyperframes:block",
+      "title": "3D UI Reveal",
+      "description": "Perspective 3D reveal animation for UI elements",
+      "tags": [
+        "showcase",
+        "3d",
+        "reveal"
+      ],
+      "files": [
+        "ui-3d-reveal.html"
+      ]
+    },
+    {
+      "name": "domain-warp-dissolve",
+      "type": "hyperframes:block",
+      "title": "Domain Warp Dissolve",
+      "description": "Shader transition with fractal noise domain warping",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "domain-warp-dissolve.html"
+      ]
+    },
+    {
+      "name": "ridged-burn",
+      "type": "hyperframes:block",
+      "title": "Ridged Burn",
+      "description": "Shader transition with ridged turbulence burn effect",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "ridged-burn.html"
+      ]
+    },
+    {
+      "name": "whip-pan",
+      "type": "hyperframes:block",
+      "title": "Whip Pan",
+      "description": "Shader transition simulating a fast camera whip pan",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "whip-pan.html"
+      ]
+    },
+    {
+      "name": "sdf-iris",
+      "type": "hyperframes:block",
+      "title": "SDF Iris",
+      "description": "Shader transition with signed distance field iris reveal",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "sdf-iris.html"
+      ]
+    },
+    {
+      "name": "ripple-waves",
+      "type": "hyperframes:block",
+      "title": "Ripple Waves",
+      "description": "Shader transition with concentric ripple wave distortion",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "ripple-waves.html"
+      ]
+    },
+    {
+      "name": "gravitational-lens",
+      "type": "hyperframes:block",
+      "title": "Gravitational Lens",
+      "description": "Shader transition with gravitational lensing distortion",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "gravitational-lens.html"
+      ]
+    },
+    {
+      "name": "cinematic-zoom",
+      "type": "hyperframes:block",
+      "title": "Cinematic Zoom",
+      "description": "Shader transition with dramatic zoom blur",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "cinematic-zoom.html"
+      ]
+    },
+    {
+      "name": "chromatic-radial-split",
+      "type": "hyperframes:block",
+      "title": "Chromatic Radial Split",
+      "description": "Shader transition with chromatic aberration radial split",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "chromatic-radial-split.html"
+      ]
+    },
+    {
+      "name": "glitch",
+      "type": "hyperframes:block",
+      "title": "Glitch",
+      "description": "Shader transition with digital glitch artifacts",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "glitch.html"
+      ]
+    },
+    {
+      "name": "swirl-vortex",
+      "type": "hyperframes:block",
+      "title": "Swirl Vortex",
+      "description": "Shader transition with swirling vortex distortion",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "swirl-vortex.html"
+      ]
+    },
+    {
+      "name": "thermal-distortion",
+      "type": "hyperframes:block",
+      "title": "Thermal Distortion",
+      "description": "Shader transition with heat haze thermal distortion",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "thermal-distortion.html"
+      ]
+    },
+    {
+      "name": "flash-through-white",
+      "type": "hyperframes:block",
+      "title": "Flash Through White",
+      "description": "Shader transition with white flash crossfade",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "flash-through-white.html"
+      ]
+    },
+    {
+      "name": "cross-warp-morph",
+      "type": "hyperframes:block",
+      "title": "Cross Warp Morph",
+      "description": "Shader transition with cross-warped morphing",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "cross-warp-morph.html"
+      ]
+    },
+    {
+      "name": "light-leak",
+      "type": "hyperframes:block",
+      "title": "Light Leak",
+      "description": "Shader transition with cinematic light leak overlay",
+      "tags": [
+        "transition",
+        "shader"
+      ],
+      "files": [
+        "light-leak.html"
+      ]
+    },
+    {
+      "name": "transitions-3d",
+      "type": "hyperframes:block",
+      "title": "3D Transitions",
+      "description": "Showcase of 3D perspective flip and rotate transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-3d.html"
+      ]
+    },
+    {
+      "name": "transitions-blur",
+      "type": "hyperframes:block",
+      "title": "Blur Transitions",
+      "description": "Showcase of blur-based transitions between scenes",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-blur.html"
+      ]
+    },
+    {
+      "name": "transitions-cover",
+      "type": "hyperframes:block",
+      "title": "Cover Transitions",
+      "description": "Showcase of cover/uncover slide transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-cover.html"
+      ]
+    },
+    {
+      "name": "transitions-destruction",
+      "type": "hyperframes:block",
+      "title": "Destruction Transitions",
+      "description": "Showcase of destructive break-apart transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-destruction.html"
+      ]
+    },
+    {
+      "name": "transitions-dissolve",
+      "type": "hyperframes:block",
+      "title": "Dissolve Transitions",
+      "description": "Showcase of dissolve and fade transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-dissolve.html"
+      ]
+    },
+    {
+      "name": "transitions-distortion",
+      "type": "hyperframes:block",
+      "title": "Distortion Transitions",
+      "description": "Showcase of warp and distortion transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-distortion.html"
+      ]
+    },
+    {
+      "name": "transitions-grid",
+      "type": "hyperframes:block",
+      "title": "Grid Transitions",
+      "description": "Showcase of grid-based tile transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-grid.html"
+      ]
+    },
+    {
+      "name": "transitions-light",
+      "type": "hyperframes:block",
+      "title": "Light Transitions",
+      "description": "Showcase of light-based glow and flash transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-light.html"
+      ]
+    },
+    {
+      "name": "transitions-mechanical",
+      "type": "hyperframes:block",
+      "title": "Mechanical Transitions",
+      "description": "Showcase of mechanical shutter and iris transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-mechanical.html"
+      ]
+    },
+    {
+      "name": "transitions-other",
+      "type": "hyperframes:block",
+      "title": "Other Transitions",
+      "description": "Showcase of miscellaneous creative transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-other.html"
+      ]
+    },
+    {
+      "name": "transitions-push",
+      "type": "hyperframes:block",
+      "title": "Push Transitions",
+      "description": "Showcase of push and slide transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-push.html"
+      ]
+    },
+    {
+      "name": "transitions-radial",
+      "type": "hyperframes:block",
+      "title": "Radial Transitions",
+      "description": "Showcase of radial wipe and reveal transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-radial.html"
+      ]
+    },
+    {
+      "name": "transitions-scale",
+      "type": "hyperframes:block",
+      "title": "Scale Transitions",
+      "description": "Showcase of scale and zoom transitions",
+      "tags": [
+        "transition",
+        "showcase"
+      ],
+      "files": [
+        "transitions-scale.html"
+      ]
+    }
+  ]
+}

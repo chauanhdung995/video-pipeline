@@ -1,0 +1,83 @@
+{
+  "objective": "mac-dinh",
+  "template": "news-card",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Tin chính hôm nay cho thấy thị trường đang đổi hướng rất nhanh.",
+      "ttsVoice": "Tin chính hôm nay cho thấy thị trường đang đổi hướng rất nhanh.",
+      "template": "news-card",
+      "templateData": {
+        "kicker": "Tin chính",
+        "title": "Tiêu đề ngắn",
+        "body": "Một câu giải thích hoặc trích dẫn ngắn",
+        "source": "Nguồn/brand nếu có",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "card"
+        ],
+        "timingPhrases": {
+          "title": "tiêu đề chính"
+        },
+        "sfx": {
+          "card": "tiêu đề chính",
+          "alert": 0.35
+        }
+      },
+      "visual": "LAYOUT: news-card. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: card. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: news-card. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: card. TEXT OVERLAY: demo.",
+        "layout": "news-card",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "card."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "news-card.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "card.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

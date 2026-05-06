@@ -1,0 +1,46 @@
+{
+  "template": "comparison-vs",
+  "description": "Versus / before-after contrast.",
+  "templateData": {
+    "left": {
+      "label": "Trước đây",
+      "value": "chậm, đắt",
+      "color": "cyan"
+    },
+    "right": {
+      "label": "Bây giờ",
+      "value": "nhanh, rõ ràng",
+      "color": "purple",
+      "winner": true
+    },
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "left",
+      "vs",
+      "right"
+    ],
+    "timingPhrases": {
+      "left": "trước đây",
+      "right": "bây giờ"
+    },
+    "sfx": {
+      "left": "trước đây",
+      "versus": "so với",
+      "right": "bây giờ"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

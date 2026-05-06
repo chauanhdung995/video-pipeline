@@ -1,0 +1,86 @@
+{
+  "objective": "breaking-news",
+  "template": "event-timeline",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Diễn biến bắt đầu lúc 8 giờ 10, sau đó có cảnh báo lúc 9 giờ, phản hồi chính thức lúc 10 giờ 30, và cập nhật mới vào đầu giờ chiều.",
+      "ttsVoice": "Diễn biến bắt đầu lúc 8 giờ 10, sau đó có cảnh báo lúc 9 giờ, phản hồi chính thức lúc 10 giờ 30, và cập nhật mới vào đầu giờ chiều.",
+      "template": "event-timeline",
+      "templateData": {
+        "kicker": "DÒNG THỜI GIAN",
+        "title": "Diễn biến trong ngày",
+        "events": [
+          {
+            "time": "08:10",
+            "title": "Tín hiệu đầu tiên",
+            "detail": "Hệ thống ghi nhận bất thường tại khu vực trung tâm."
+          },
+          {
+            "time": "09:00",
+            "title": "Cảnh báo được phát đi",
+            "detail": "Các đơn vị liên quan chuyển sang trạng thái trực ban."
+          },
+          {
+            "time": "10:30",
+            "title": "Phản hồi chính thức",
+            "detail": "Cơ quan phụ trách xác nhận đang kiểm tra nguyên nhân."
+          },
+          {
+            "time": "13:15",
+            "title": "Cập nhật mới",
+            "detail": "Một phần dịch vụ đã được khôi phục có kiểm soát."
+          },
+          {
+            "time": "15:00",
+            "title": "Theo dõi mở rộng",
+            "detail": "Dữ liệu mới sẽ được công bố trong bản tin tiếp theo."
+          }
+        ],
+        "source": "Mốc thời gian theo bản cập nhật 15:00",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#05070d",
+            "#101827",
+            "#dc2626",
+            "#22d3ee"
+          ],
+          "pattern": "polished breaking-news newsroom bands, animated low-contrast grid, soft red alert accents, cyan rim light",
+          "opacity": 0.22
+        },
+        "blockRefs": [
+          "flowchart",
+          "components/shimmer-sweep",
+          "components/grain-overlay",
+          "light-leak"
+        ],
+        "appearanceOrder": [
+          "title",
+          "event1",
+          "event2",
+          "event3",
+          "event4",
+          "event5"
+        ],
+        "timingPhrases": {
+          "title": "diễn biến",
+          "event1": "tám giờ mười",
+          "event2": "chín giờ",
+          "event3": "mười giờ ba mươi",
+          "event4": "đầu giờ chiều",
+          "event5": "bản tin tiếp theo"
+        },
+        "sfx": {
+          "title": "alert/notification.mp3",
+          "event1": "emphasis/tick.mp3",
+          "event2": "emphasis/tick.mp3",
+          "event3": "transition/pop.mp3",
+          "event4": "transition/whoosh-soft.mp3",
+          "event5": "emphasis/ding.mp3"
+        }
+      },
+      "visual": "LAYOUT: polished vertical breaking-news timeline in 9:16, headline and footer note shifted slightly right, stronger typographic hierarchy, five safe Vietnamese event cards. BACKGROUND: subtle continuous animated newsroom gradient, grid, grain, red/cyan light accents."
+    }
+  ]
+}

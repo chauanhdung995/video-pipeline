@@ -1,0 +1,51 @@
+{
+  "template": "explainer-image-context",
+  "description": "Full-screen image/background explainer scene for setting visual context before explaining a concept.",
+  "templateData": {
+    "kicker": "BỐI CẢNH",
+    "title": "Nhìn vào bức tranh lớn",
+    "subtitle": "Ảnh nền đặt người xem vào đúng tình huống trước khi đi vào cơ chế.",
+    "caption": "Dùng khi hình ảnh là bằng chứng hoặc bối cảnh chính của cảnh.",
+    "imageSearch": {
+      "q": "\"modern technology dashboard\" editorial photo diagram -logo -icon",
+      "intent": "Find a crop-safe portrait editorial image or diagram that can work as a full-screen explainer background.",
+      "orientation": "portrait",
+      "prefer": ["editorial", "diagram", "context"],
+      "avoid": ["logo", "icon", "clipart", "stock"]
+    },
+    "image": {
+      "title": "",
+      "src": "",
+      "width": 0,
+      "height": 0,
+      "alt": ""
+    },
+    "overlay": { "opacity": 0.62 },
+    "background": {
+      "type": "gradient",
+      "colors": ["#08111f", "#15243a"],
+      "accent": "#22d3ee",
+      "mint": "#34d399",
+      "opacity": 0.16
+    },
+    "blockRefs": ["image-background-hero", "shimmer-sweep", "light-leak"],
+    "appearanceOrder": ["image", "title", "subtitle", "caption"],
+    "timingPhrases": {
+      "image": "bức tranh lớn",
+      "title": "bức tranh lớn",
+      "subtitle": "đúng tình huống",
+      "caption": "bối cảnh chính"
+    },
+    "sfx": {
+      "image": 0.08,
+      "title": "bức tranh lớn",
+      "caption": "bối cảnh chính"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

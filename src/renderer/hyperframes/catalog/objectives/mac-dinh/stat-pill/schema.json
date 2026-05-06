@@ -1,0 +1,37 @@
+{
+  "template": "stat-pill",
+  "description": "Metric badge / pill that pops in as the voice reads the number.",
+  "templateData": {
+    "value": "+500%",
+    "label": "tăng trưởng chi tiêu",
+    "context": "~600M USD/tháng",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "value",
+      "label",
+      "context"
+    ],
+    "timingPhrases": {
+      "value": "năm trăm phần trăm",
+      "context": "sáu trăm triệu"
+    },
+    "sfx": {
+      "value": "năm trăm phần trăm",
+      "context": "sáu trăm triệu"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

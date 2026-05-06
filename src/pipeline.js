@@ -3,24 +3,26 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { broadcast } from '../server.js';
-import { generateScript } from './agents/scriptAgent.js';
-import { normalizeTTSVoices } from './agents/ttsNormalizeAgent.js';
+import { generateScript, generateFreeformScript, generateTemplateDataForScript, preferImageTemplatesForScript } from './agents/scriptAgent.js';
+import { downloadImagesForScenePlans, normalizeUploadedImages } from './services/imageAssets.js';
 import { generateTTS } from './agents/ttsAgent.js';
 import { transcribeToSRT } from './agents/whisperAgent.js';
-import { generateSceneHTML, generateThumbnailHTML, DEFAULT_STYLE_GUIDE } from './agents/sceneAgent.js';
-import { renderSceneVideo, renderHtmlStill } from './renderer/puppeteerRender.js';
-import { mergeSceneAudio, concatScenesWithXFade, buildKaraokeASS, burnSubtitlesAndLogo, burnLogoOnly, mixMusicAndSFX } from './renderer/ffmpegMerge.js';
+import { generateSceneHTML } from './agents/sceneAgent.js';
+import { renderSceneVideo } from './renderer/hyperframesRender.js';
+import { mergeSceneAudio, concatScenesWithXFade, buildKaraokeASS, burnSubtitlesAndLogo, burnLogoOnly, mixBackgroundMusic, hasAudioStream } from './renderer/ffmpegMerge.js';
+import { inferTemplate } from './renderer/hyperframesTemplateSystem.js';
 import { loadState, saveState, logEvent, waitForRenderTrigger } from './utils/state.js';
 import { syncFromState } from './db/index.js';
 import { getSettings } from './utils/settings.js';
-import { decideMusicPlan } from './agents/musicAgent.js';
-import { extractAssetKeywords } from './agents/assetKeywordsAgent.js';
-import { loadMediaCache, searchByKeywords, entryFileURL, BRAND_DIR, SFX_DIR, BGM_DIR } from './utils/assetSearch.js';
 import { SESS_DIR } from './utils/paths.js';
+import { correctSubtitleArtifacts } from './utils/subtitleCorrection.js';
 
 const fmtMs = ms => ms < 60000
   ? `${(ms / 1000).toFixed(1)}s`
   : `${Math.floor(ms / 60000)}m${Math.round((ms % 60000) / 1000)}s`;
+
+const TTS_SRT_CONCURRENCY = Math.max(3, Math.min(6, Number(process.env.TTS_SRT_CONCURRENCY) || 3));
+const OUTPUT_ASPECT_RATIO = '9:16';
 
 // ─── Broadcast helpers ────────────────────────────────────────────────────────
 
@@ -50,221 +52,250 @@ function save(sessionId, state) {
   syncFromState(sessionId, state);
 }
 
-// ─── SRT spelling correction via voice script ────────────────────────────────
-
-function editDist(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1]
-        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-  return dp[m][n];
-}
-
-function normWord(w) {
-  return w.toLowerCase().replace(/[.,!?;:'"…""''–—]/g, '');
-}
-
-/**
- * Sửa lỗi chính tả trong SRT bằng cách align greedy với kịch bản voice.
- * Với mỗi từ whisper, quét cửa sổ trượt trong script để tìm từ gần nhất.
- * Ngưỡng: edit distance ≤ floor(wordLen/3) + 1, tối đa 3.
- */
-function correctSRTWithVoice(srtContent, voiceScript) {
-  if (!voiceScript || !srtContent) return srtContent;
-
-  const scriptWords = voiceScript.trim().split(/\s+/).map(normWord).filter(Boolean);
-  if (!scriptWords.length) return srtContent;
-
-  // Parse SRT thành blocks
-  const rawBlocks = srtContent.trim().split(/\n\n+/);
-  const blocks = rawBlocks.map(b => {
-    const lines = b.split('\n');
-    const words = lines.slice(2).join(' ').trim().split(/\s+/).filter(Boolean);
-    return { header: lines.slice(0, 2), words };
-  });
-
-  // Lấy toàn bộ từ whisper (flattened)
-  const allWhisper = blocks.flatMap(b => b.words);
-
-  // Greedy alignment: với mỗi whisper word, quét WINDOW=6 từ tiếp theo trong script
-  const WINDOW = 6;
-  let sPtr = 0; // con trỏ vào scriptWords
-  const corrected = allWhisper.map(raw => {
-    const nRaw = normWord(raw);
-    const maxThresh = Math.min(3, Math.floor(nRaw.length / 3) + 1);
-
-    let bestDist = Infinity, bestIdx = -1;
-    const limit = Math.min(sPtr + WINDOW, scriptWords.length);
-    for (let si = sPtr; si < limit; si++) {
-      const d = editDist(nRaw, scriptWords[si]);
-      if (d < bestDist) { bestDist = d; bestIdx = si; }
-    }
-
-    if (bestDist <= maxThresh && bestIdx >= 0) {
-      // Giữ hoa/thường đầu câu của raw, dùng nội dung từ script
-      const scriptRaw = voiceScript.trim().split(/\s+/).filter(Boolean)[bestIdx] || raw;
-      sPtr = bestIdx + 1;
-      // Giữ ký tự hoa đầu nếu raw hoa đầu
-      if (raw[0] === raw[0].toUpperCase() && raw[0] !== raw[0].toLowerCase()) {
-        return scriptRaw[0].toUpperCase() + scriptRaw.slice(1);
-      }
-      return scriptRaw;
-    }
-    return raw;
-  });
-
-  // Gán lại từ đã sửa về blocks
-  let wIdx = 0;
-  return blocks.map(b => {
-    const newWords = corrected.slice(wIdx, wIdx + b.words.length);
-    wIdx += b.words.length;
-    return [...b.header, newWords.join(' ')].join('\n');
-  }).join('\n\n') + '\n';
-}
-
 // ─── Public entry points ──────────────────────────────────────────────────────
 
-export async function runPipeline({ sessionId, topic, script, thumbnail, chato1Keys, openaiKeys, ttsProvider, lucylabKey, voiceId, vbeeKey, vbeeAppId, vbeeVoiceCode, projectAssets, outputAspectRatio, aiProvider, geminiKeys, enableSubtitles, styleGuide, videoDurationSec, sceneDurationSec, ttsSpeed }) {
+export async function runPipeline({
+  sessionId,
+  topic,
+  script,
+  larvoiceVoiceId,
+  backgroundMusic,
+  enableSubtitles,
+  videoDurationSec,
+  ttsSpeed,
+  videoObjective,
+  useTemplateMode,
+  uploadedImages,
+}) {
   const dir = path.join(SESS_DIR, sessionId);
   fs.mkdirSync(dir, { recursive: true });
-  ['scenes', 'audio', 'srt', 'html', 'video', 'assets', 'thumbnail'].forEach(d =>
+  ['audio', 'srt', 'html', 'video', 'music', 'images'].forEach(d =>
     fs.mkdirSync(path.join(dir, d), { recursive: true })
   );
+  const safeUploadedImages = normalizeUploadedImages(uploadedImages);
   const initState = {
     sessionId,
     topic,
-    chato1Keys,
-    openaiKeys,
-    ttsProvider: ttsProvider || 'lucylab',
-    lucylabKey,
-    voiceId,
-    vbeeKey,
-    vbeeAppId,
-    vbeeVoiceCode,
+    larvoiceVoiceId: Number(larvoiceVoiceId) || 1,
     status: 'running',
     createdAt: Date.now(),
-    projectAssets,
-    outputAspectRatio: outputAspectRatio || '9:16',
-    aiProvider: aiProvider || 'chato1',
-    geminiKeys,
+    backgroundMusic,
+    videoObjective: videoObjective || 'mac-dinh',
+    useTemplateMode: useTemplateMode !== false,
+    generationMode: useTemplateMode === false ? 'ai-html' : 'template',
+    outputAspectRatio: OUTPUT_ASPECT_RATIO,
     enableSubtitles: enableSubtitles !== false,
-    styleGuide: styleGuide || null,
     videoDurationSec: Number(videoDurationSec) || 120,
-    sceneDurationSec: Number(sceneDurationSec) || 15,
     ttsSpeed: Number(ttsSpeed) || 1.0,
+    uploadedImages: safeUploadedImages,
+    imageRequired: safeUploadedImages.length > 0 || requestMentionsImages(topic),
     script: Array.isArray(script) ? script : undefined,
-    thumbnail: thumbnail || undefined,
   };
+  if (safeUploadedImages.length) {
+    fs.writeFileSync(path.join(dir, 'uploaded_images.json'), JSON.stringify(safeUploadedImages, null, 2));
+  }
   save(sessionId, initState);
-  await executePipeline(sessionId, { topic, chato1Keys, openaiKeys, ttsProvider, lucylabKey, voiceId, vbeeKey, vbeeAppId, vbeeVoiceCode });
+  await executePipeline(sessionId, { topic, larvoiceVoiceId: initState.larvoiceVoiceId });
 }
 
-export async function resumePipeline({ sessionId, chato1Keys, openaiKeys, geminiKeys, ttsProvider, lucylabKey, voiceId, vbeeKey, vbeeAppId, vbeeVoiceCode, ttsSpeed }) {
+export async function resumePipeline({ sessionId, larvoiceVoiceId, ttsSpeed }) {
   const state = loadState(sessionId);
   if (!state) throw new Error('Session không tồn tại');
-  if (chato1Keys?.length)  state.chato1Keys  = chato1Keys;
-  if (openaiKeys?.length)  state.openaiKeys  = openaiKeys;
-  if (geminiKeys?.length)  state.geminiKeys  = geminiKeys;
-  if (ttsProvider)         state.ttsProvider = ttsProvider;
-  if (lucylabKey)          state.lucylabKey  = lucylabKey;
-  if (voiceId)             state.voiceId     = voiceId;
-  if (vbeeKey)             state.vbeeKey     = vbeeKey;
-  if (vbeeAppId)           state.vbeeAppId   = vbeeAppId;
-  if (vbeeVoiceCode)       state.vbeeVoiceCode = vbeeVoiceCode;
+  if (larvoiceVoiceId)       state.larvoiceVoiceId = Number(larvoiceVoiceId) || 1;
   if (ttsSpeed)            state.ttsSpeed    = Number(ttsSpeed);
   state.status = 'running';
+  state.lastError = null;
   save(sessionId, state);
   await executePipeline(sessionId, state);
 }
 
 // ─── Main pipeline ────────────────────────────────────────────────────────────
 
-// Build a map { stt → [projectAsset, ...] } from script's assets field
-function buildSceneAssetsMap(script, projectAssets) {
-  if (!projectAssets?.length || !script?.length) return {};
-  const byName = new Map(projectAssets.map(a => [a.name.toLowerCase().trim(), a]));
-  const map = {};
-  for (const sc of script) {
-    map[sc.stt] = (sc.assets || [])
-      .map(name => byName.get(name.toLowerCase().trim()))
-      .filter(Boolean);
+function loadWordTimings(filePath) {
+  if (!fs.existsSync(filePath)) return [];
+  try {
+    const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
   }
-  return map;
 }
 
-function buildDefaultThumbnail(topic, scenes = []) {
-  const title = String(topic || scenes[0]?.voice || 'Thumbnail video').trim().slice(0, 120) || 'Thumbnail video';
-  const sceneSummary = scenes.slice(0, 3)
-    .map(sc => `Cảnh ${sc.stt}: ${sc.visual || sc.voice}`)
-    .join(' | ');
-  return {
-    title,
-    prompt: `Thumbnail tĩnh cinematic cho video "${title}". Chủ đề chính: ${title}. Bám sát các ý nổi bật sau: ${sceneSummary || 'Nội dung giáo dục ngắn gọn, rõ ràng'}. Bố cục phải có 1 chủ thể chính nổi bật, nền có chiều sâu, text overlay ngắn và rất dễ đọc, tương phản mạnh, phù hợp ảnh thumbnail.`,
-    htmlDone: false,
-    imageDone: false,
-  };
+function scriptNeedsTemplateData(script, useTemplateMode = true) {
+  if (useTemplateMode === false) return false;
+  return Array.isArray(script) && script.some(scene =>
+    !scene?.templateData ||
+    typeof scene.templateData !== 'object' ||
+    Array.isArray(scene.templateData)
+  );
 }
 
-function normalizeThumbnailState(thumbnail, topic, scenes = []) {
-  const fallback = buildDefaultThumbnail(topic, scenes);
-  return {
-    title: String(thumbnail?.title || fallback.title).trim().slice(0, 120) || fallback.title,
-    prompt: String(thumbnail?.prompt || fallback.prompt).trim() || fallback.prompt,
-    htmlDone: Boolean(thumbnail?.htmlDone),
-    imageDone: Boolean(thumbnail?.imageDone),
-  };
+function requestMentionsImages(text = '') {
+  return /\b(ảnh|hình ảnh|hình minh họa|minh họa|photo|photos|image|images|screenshot|ảnh chụp|visual evidence|bằng chứng hình ảnh)\b/i
+    .test(String(text || ''));
 }
 
-async function executePipeline(sessionId, { topic, chato1Keys, openaiKeys, ttsProvider, lucylabKey, voiceId, vbeeKey, vbeeAppId, vbeeVoiceCode }) {
+function scriptNeedsImageAssets(script, forceImages = false) {
+  if (!Array.isArray(script)) return false;
+  return script.some(scene => {
+    const hasCandidates = Array.isArray(scene?.imageCandidates) && scene.imageCandidates.length > 0;
+    const hasUploadedCandidates = Array.isArray(scene?.uploadedImageCandidates) && scene.uploadedImageCandidates.length > 0;
+    const asksForImage = forceImages ||
+      scene?.imageRequired === true ||
+      Boolean(scene?.['keyword-image'] || scene?.keywordImage) ||
+      Boolean(scene?.['uploaded-image-url'] || scene?.uploadedImageUrl);
+    return asksForImage && !hasCandidates && !hasUploadedCandidates;
+  });
+}
+
+function sceneHtmlNeedsTimedRefresh(htmlPath, scene = {}, sceneCount = 0) {
+  if (!fs.existsSync(htmlPath)) return false;
+  const html = fs.readFileSync(htmlPath, 'utf8');
+  const hasCurrentTemplateSystem = html.includes('data-vp-html-version="hyperframes-template-system-v1"');
+  if (hasCurrentTemplateSystem) {
+    if (!html.includes('data-sfx-template=')) return true;
+    if (html.includes('data-duration="auto"') || html.includes('data-end="NaN"')) return true;
+    const currentTemplate = html.match(/\bdata-layout="([^"]+)"/)?.[1] || '';
+    const expectedTemplate = inferTemplate(scene, sceneCount);
+    return Boolean(expectedTemplate && currentTemplate !== expectedTemplate);
+  }
+
+  // Only auto-refresh HTML that looks like our generated HyperFrames template.
+  // This upgrades older sessions without overwriting arbitrary custom HTML.
+  return html.includes('data-vp-html-version="hyperframes-timed-v2"') ||
+    (html.includes('data-composition-id="scene-') &&
+    html.includes('window.__timelines') &&
+    html.includes('hf-anim'));
+}
+
+async function composeAndSaveSceneHTML({ dir, sessionId, scene, state, log, reason }) {
+  const stt = Number(scene?.stt);
+  const srtPath = path.join(dir, 'srt', `${stt}.srt`);
+  const wordsPath = path.join(dir, 'srt', `${stt}.words.json`);
+  const htmlPath = path.join(dir, 'html', `${stt}.html`);
+
+  if (!scene.srt && fs.existsSync(srtPath)) {
+    scene.srt = fs.readFileSync(srtPath, 'utf8');
+  }
+
+  const wordTimings = loadWordTimings(wordsPath);
+  if (wordTimings.length) {
+    scene.wordTimings = wordTimings;
+    log?.(`Cảnh ${stt}: nạp ${wordTimings.length} mốc thời gian từng từ`);
+  }
+
+  log?.(`Cảnh ${stt}: ${reason || 'compose lại HTML HyperFrames'}...`);
+  const html = await generateSceneHTML({
+    scene,
+    keys: { sessionId },
+    onLog: log,
+    sceneCount: state.scenes?.length || 0,
+    useTemplateMode: state.useTemplateMode !== false,
+  });
+
+  fs.writeFileSync(htmlPath, html, 'utf8');
+  scene.htmlDone = true;
+  scene.htmlEdited = false;
+  scene.renderDone = false;
+  save(sessionId, state);
+  broadcast({ sessionId, type: 'scene_html_ready', stt });
+  return true;
+}
+
+async function executePipeline(sessionId, { topic, larvoiceVoiceId }) {
   const dir   = path.join(SESS_DIR, sessionId);
   const state = loadState(sessionId);
+  state.uploadedImages = normalizeUploadedImages(state.uploadedImages);
+  state.useTemplateMode = state.useTemplateMode !== false;
+  state.generationMode = state.useTemplateMode ? 'template' : 'ai-html';
+  state.imageRequired = state.imageRequired === true ||
+    state.uploadedImages.length > 0 ||
+    requestMentionsImages(state.topic || topic || '');
   const keys  = {
     sessionId,
-    chato1: chato1Keys,
-    openaiKeys,
-    ttsProvider: state.ttsProvider || ttsProvider || 'lucylab',
-    lucylabKey,
-    voiceId,
-    vbeeKey,
-    vbeeAppId,
-    vbeeVoiceCode,
+    larvoiceVoiceId: Number(state.larvoiceVoiceId || larvoiceVoiceId) || 1,
     ttsSpeed: Number(state.ttsSpeed) || 1.0,
-    aiProvider: state.aiProvider || 'chato1',
-    geminiKeys: state.geminiKeys,
   };
-  const projectAssets     = state.projectAssets || [];
-  const outputAspectRatio = state.outputAspectRatio || '9:16';
-  const styleGuide        = state.styleGuide || undefined;
+  state.outputAspectRatio = OUTPUT_ASPECT_RATIO;
 
   try {
     // ── B2: Kịch bản ──────────────────────────────────────────────────────────
     let script = state.script;
-    let thumbnail = state.thumbnail;
     if (!script) {
-      progress(sessionId, 2, '⏳ Đang tạo kịch bản JSON...');
+      progress(sessionId, 2, state.useTemplateMode
+        ? '⏳ Đang tạo kịch bản phân cảnh...'
+        : '⏳ Đang tạo kịch bản + JSON mô tả HTML từng cảnh...');
       const log2 = makeLogger(sessionId, 2);
       const t0 = Date.now();
-      const generated = await generateScript({
-        topic,
-        keys,
-        onLog: log2,
-        projectAssets,
-        videoDurationSec: Number(state.videoDurationSec) || 120,
-        sceneDurationSec: Number(state.sceneDurationSec) || 15,
-      });
-      script = generated.scenes;
-      thumbnail = generated.thumbnail;
-      try {
-        script = await normalizeTTSVoices({ scenes: script, keys, onLog: log2 });
-      } catch (e) {
-        log2(`Chuẩn hóa TTS thất bại, dùng voice gốc cho TTS: ${e.message}`);
-        script = script.map(sc => ({ ...sc, ttsVoice: sc.voice }));
+
+      if (state.useTemplateMode) {
+        const generated = await generateScript({
+          topic,
+          keys,
+          onLog: log2,
+          videoDurationSec: Number(state.videoDurationSec) || 120,
+          videoObjective: state.videoObjective || 'mac-dinh',
+          uploadedImages: state.uploadedImages,
+          requireImages: state.imageRequired,
+        });
+        let plannedScenes = generated.scenes;
+        state.scriptPlan = plannedScenes;
+        fs.writeFileSync(path.join(dir, 'script_plan.json'), JSON.stringify(plannedScenes, null, 2));
+        save(sessionId, state);
+
+        progress(sessionId, 2, '⏳ Đang resolve ảnh upload/Serper cho template cần hình...');
+        const imageResolved = await downloadImagesForScenePlans({
+          scenes: plannedScenes,
+          sessionId,
+          sessionDir: dir,
+          videoObjective: state.videoObjective || 'mac-dinh',
+          uploadedImages: state.uploadedImages,
+          forceImages: false,
+          onLog: log2,
+        });
+        plannedScenes = imageResolved.scenes;
+        state.scriptPlan = plannedScenes;
+        fs.writeFileSync(path.join(dir, 'script_plan.json'), JSON.stringify(plannedScenes, null, 2));
+        save(sessionId, state);
+
+        progress(sessionId, 2, '⏳ Đang tạo JSON templateData theo mẫu + ảnh local...');
+        const finalized = await generateTemplateDataForScript({
+          scenes: plannedScenes,
+          keys,
+          onLog: log2,
+          videoObjective: state.videoObjective || 'mac-dinh',
+          uploadedImages: state.uploadedImages,
+        });
+        script = finalized.scenes;
+      } else {
+        const generated = await generateFreeformScript({
+          topic,
+          keys,
+          onLog: log2,
+          videoDurationSec: Number(state.videoDurationSec) || 120,
+          uploadedImages: state.uploadedImages,
+          requireImages: state.imageRequired,
+        });
+        script = generated.scenes;
+        state.scriptPlan = script;
+        fs.writeFileSync(path.join(dir, 'script_plan.json'), JSON.stringify(script, null, 2));
+        if (state.imageRequired || script.some(scene => scene.imageRequired || scene['keyword-image'] || scene.keywordImage || scene['uploaded-image-url'] || scene.uploadedImageUrl)) {
+          progress(sessionId, 2, '⏳ Đang resolve ảnh upload/Serper cho nhánh AI HTML...');
+          const imageResolved = await downloadImagesForScenePlans({
+            scenes: script,
+            sessionId,
+            sessionDir: dir,
+            videoObjective: state.videoObjective || 'mac-dinh',
+            uploadedImages: state.uploadedImages,
+            forceImages: state.imageRequired,
+            onLog: log2,
+          });
+          script = imageResolved.scenes;
+          state.scriptPlan = script;
+          fs.writeFileSync(path.join(dir, 'script_plan.json'), JSON.stringify(script, null, 2));
+        }
       }
       state.script = script;
-      state.thumbnail = normalizeThumbnailState(thumbnail, topic, script);
       fs.writeFileSync(path.join(dir, 'script.json'), JSON.stringify(script, null, 2));
       save(sessionId, state);
       progress(sessionId, 2, `✓ Kịch bản: ${script.length} cảnh | ${fmtMs(Date.now() - t0)}`);
@@ -273,50 +304,107 @@ async function executePipeline(sessionId, { topic, chato1Keys, openaiKeys, ttsPr
       if (!fs.existsSync(path.join(dir, 'script.json'))) {
         fs.writeFileSync(path.join(dir, 'script.json'), JSON.stringify(script, null, 2));
       }
-      state.thumbnail = normalizeThumbnailState(thumbnail, topic, script);
       save(sessionId, state);
+      if (scriptNeedsTemplateData(script, state.useTemplateMode)) {
+        const log2 = makeLogger(sessionId, 2);
+        progress(sessionId, 2, '⏳ Kịch bản cũ chưa có templateData — resolve ảnh và hoàn thiện JSON...');
+        script = preferImageTemplatesForScript(script, {
+          requireImages: state.imageRequired,
+          videoObjective: state.videoObjective || 'mac-dinh',
+          uploadedImages: state.uploadedImages,
+          onLog: log2,
+        });
+        const imageResolved = await downloadImagesForScenePlans({
+          scenes: script,
+          sessionId,
+          sessionDir: dir,
+          videoObjective: state.videoObjective || 'mac-dinh',
+          uploadedImages: state.uploadedImages,
+          forceImages: false,
+          onLog: log2,
+        });
+        const finalized = await generateTemplateDataForScript({
+          scenes: imageResolved.scenes,
+          keys,
+          onLog: log2,
+          videoObjective: state.videoObjective || 'mac-dinh',
+          uploadedImages: state.uploadedImages,
+        });
+        script = finalized.scenes;
+        state.script = script;
+        fs.writeFileSync(path.join(dir, 'script.json'), JSON.stringify(script, null, 2));
+        save(sessionId, state);
+      }
+      if (!state.useTemplateMode && scriptNeedsImageAssets(script, state.imageRequired)) {
+        const log2 = makeLogger(sessionId, 2);
+        progress(sessionId, 2, '⏳ Kịch bản AI HTML cũ cần ảnh — resolve upload/Serper...');
+        const imageResolved = await downloadImagesForScenePlans({
+          scenes: script,
+          sessionId,
+          sessionDir: dir,
+          videoObjective: state.videoObjective || 'mac-dinh',
+          uploadedImages: state.uploadedImages,
+          forceImages: state.imageRequired,
+          onLog: log2,
+        });
+        script = imageResolved.scenes;
+        state.script = script;
+        state.scriptPlan = script;
+        fs.writeFileSync(path.join(dir, 'script_plan.json'), JSON.stringify(script, null, 2));
+        fs.writeFileSync(path.join(dir, 'script.json'), JSON.stringify(script, null, 2));
+        save(sessionId, state);
+      }
     }
-
-    // Build per-scene asset map (idempotent — safe on resume)
-    if (!state.sceneAssetsMap && projectAssets.length) {
-      state.sceneAssetsMap = buildSceneAssetsMap(script, projectAssets);
-      save(sessionId, state);
-    }
-    const sceneAssetsMap = state.sceneAssetsMap || {};
 
     // Khởi tạo state.scenes — save + broadcast ngay để frontend hiện loading cards
-    state.scenes = state.scenes || script.map(s => ({ stt: s.stt, voice: s.voice, ttsVoice: s.ttsVoice || s.voice, visual: s.visual }));
+    state.scenes = state.scenes || script.map(s => ({
+      stt: s.stt,
+      voice: s.voice,
+      ttsVoice: s.ttsVoice || s.voice,
+      targetDurationSec: s.targetDurationSec,
+      visual: s.visual,
+      template: s.template,
+      generationMode: s.generationMode || (state.useTemplateMode ? 'template' : 'ai-html'),
+      useTemplateMode: state.useTemplateMode !== false,
+      imageRequired: s.imageRequired === true,
+      ...(s['keyword-image'] || s.keywordImage ? {
+        'keyword-image': s['keyword-image'] || s.keywordImage,
+        keywordImage: s.keywordImage || s['keyword-image'],
+      } : {}),
+      ...(s['uploaded-image-url'] || s.uploadedImageUrl ? {
+        'uploaded-image-url': s['uploaded-image-url'] || s.uploadedImageUrl,
+        uploadedImageUrl: s.uploadedImageUrl || s['uploaded-image-url'],
+      } : {}),
+      ...(s['uploaded-image-name'] || s.uploadedImageName ? {
+        'uploaded-image-name': s['uploaded-image-name'] || s.uploadedImageName,
+        uploadedImageName: s.uploadedImageName || s['uploaded-image-name'],
+      } : {}),
+      templateData: s.templateData,
+      htmlSpec: s.htmlSpec,
+      sfxPlan: s.sfxPlan,
+      imageCandidates: Array.isArray(s.imageCandidates) ? s.imageCandidates : undefined,
+      uploadedImageCandidates: Array.isArray(s.uploadedImageCandidates) ? s.uploadedImageCandidates : undefined,
+    }));
+    syncScriptVisualAssetsToScenes(state.scenes, script);
     const total  = state.scenes.length;
     save(sessionId, state);
     broadcast({ sessionId, type: 'scenes_ready', total });
 
-    // Keywords + brand cache chuẩn bị trước vòng TTS (chỉ cần script, không cần audio)
-    if (!state.assetKeywords) {
-      progress(sessionId, 5, '⏳ AI phân tích kịch bản → keywords tài nguyên...');
-      const log25 = makeLogger(sessionId, 5);
-      state.assetKeywords = await extractAssetKeywords({ script, keys, onLog: log25 });
-      save(sessionId, state);
-      progress(sessionId, 5, '✓ Keywords tài nguyên xong');
-    } else {
-      makeLogger(sessionId, 5)('Keywords tài nguyên đã có (bỏ qua)');
-    }
-    const brandCache = await loadMediaCache(BRAND_DIR);
-
-    // ── B4+B5: TTS tuần tự → HTML kick-off ngay khi SRT sẵn ─────────────────
+    // ── B4+B5: TTS song song → HTML kick-off ngay khi SRT sẵn ────────────────
     // Mỗi scene xong TTS+Whisper → gửi HTML ngay, không chờ scene tiếp theo TTS xong.
     // HTML các scene chạy song song với nhau và với TTS các scene sau.
-    progress(sessionId, 4, `⏳ TTS + HTML ${total} cảnh (HTML được gửi ngay khi SRT sẵn)...`);
+    progress(sessionId, 4, `⏳ TTS + HTML ${total} cảnh (LarVoice tối đa ${TTS_SRT_CONCURRENCY} cảnh song song)...`);
     const htmlDoneCount = state.scenes.filter(s => s.htmlDone).length;
     if (htmlDoneCount > 0) makeLogger(sessionId, 4)(`${htmlDoneCount} cảnh đã có HTML — bỏ qua`);
 
     const htmlPromises = [];
 
-    for (const sc of state.scenes) {
+    await runConcurrent(state.scenes, TTS_SRT_CONCURRENCY, async (sc) => {
       const audioPath = path.join(dir, 'audio', `${sc.stt}.mp3`);
       const srtPath   = path.join(dir, 'srt',   `${sc.stt}.srt`);
+      const wordsPath = path.join(dir, 'srt',   `${sc.stt}.words.json`);
       const log4      = makeLogger(sessionId, 4);
 
-      // TTS (tuần tự do giới hạn API)
       if (!sc.audioDone || !fs.existsSync(audioPath)) {
         progress(sessionId, 4, `⏳ TTS cảnh ${sc.stt}/${total}...`);
         await generateTTS(sc.ttsVoice || sc.voice, audioPath, log4, keys);
@@ -332,46 +420,64 @@ async function executePipeline(sessionId, { topic, chato1Keys, openaiKeys, ttsPr
         progress(sessionId, 4, `⏳ Whisper cảnh ${sc.stt}/${total}...`);
         await transcribeToSRT(audioPath, srtPath, log4);
         let srtRaw = fs.readFileSync(srtPath, 'utf8');
-        const srtFixed = correctSRTWithVoice(srtRaw, sc.voice);
-        if (srtFixed !== srtRaw) {
-          fs.writeFileSync(srtPath, srtFixed, 'utf8');
-          log4(`Whisper: đã sửa chính tả SRT theo kịch bản voice`);
-          srtRaw = srtFixed;
+        const rawWordTimings = loadWordTimings(wordsPath);
+        const corrected = correctSubtitleArtifacts(srtRaw, sc.voice, rawWordTimings);
+        if (corrected.srt !== srtRaw) {
+          fs.writeFileSync(srtPath, corrected.srt, 'utf8');
+          log4(`Whisper: đã align SRT theo kịch bản voice`);
+          srtRaw = corrected.srt;
+        }
+        if (corrected.wordTimings?.length) {
+          fs.writeFileSync(wordsPath, JSON.stringify(corrected.wordTimings, null, 2), 'utf8');
         }
         sc.srt    = srtRaw;
         sc.srtDone = true;
+        const wordTimings = corrected.wordTimings?.length ? corrected.wordTimings : loadWordTimings(wordsPath);
+        if (wordTimings.length) {
+          sc.wordTimings = wordTimings;
+          log4(`Whisper: đã lưu ${wordTimings.length} mốc thời gian từng từ đã align`);
+        }
         save(sessionId, state);
       } else if (!sc.srt && fs.existsSync(srtPath)) {
         // Resume: load SRT từ disk nếu chưa có trong memory
         sc.srt = fs.readFileSync(srtPath, 'utf8');
       }
+      if (!sc.wordTimings) {
+        const wordTimings = loadWordTimings(wordsPath);
+        if (wordTimings.length) {
+          sc.wordTimings = wordTimings;
+          save(sessionId, state);
+        }
+      }
 
       // SRT đã có → kick off HTML ngay (không await, chạy song song với TTS tiếp theo)
       const htmlPath = path.join(dir, 'html', `${sc.stt}.html`);
-      if (!sc.htmlDone || !fs.existsSync(htmlPath)) {
+      const htmlStale = sceneHtmlNeedsTimedRefresh(htmlPath, sc, total);
+      if (!sc.htmlDone || !fs.existsSync(htmlPath) || htmlStale) {
         const log5 = makeLogger(sessionId, 5);
-        const sceneKeywords = state.assetKeywords?.brand_assets?.[String(sc.stt)] ?? [];
-        const allMatched = searchByKeywords(sceneKeywords, brandCache, 5)
-          .map(entry => ({ ...entry, url: entryFileURL(BRAND_DIR, entry.name) }));
-        const useCharacter = sc.stt % 3 === 1;
-        const matchedAssets = useCharacter
-          ? allMatched
-          : allMatched.filter(a => !a.name.toLowerCase().includes('character'));
-        const sceneProjectAssets = sceneAssetsMap[sc.stt] || [];
 
-        progress(sessionId, 5, `⏳ AI đang tạo HTML cảnh ${sc.stt}/${total}...`);
+        progress(sessionId, 5, htmlStale
+          ? `⏳ HTML cảnh ${sc.stt}/${total} là bản cũ — compose lại với timing/SFX...`
+          : `⏳ Đang compose HTML HyperFrames cảnh ${sc.stt}/${total}...`);
         htmlPromises.push(
-          generateSceneHTML({ scene: sc, keys, onLog: log5, brandAssets: matchedAssets, projectAssets: sceneProjectAssets, outputAspectRatio, styleGuide })
+          generateSceneHTML({
+            scene: sc,
+            keys,
+            onLog: log5,
+            sceneCount: total,
+            useTemplateMode: state.useTemplateMode !== false,
+          })
             .then(html => {
               fs.writeFileSync(htmlPath, html);
               sc.htmlDone = true;
+              sc.htmlEdited = false;
               save(sessionId, state);
               progress(sessionId, 5, `✓ HTML cảnh ${sc.stt}/${total} xong`);
               broadcast({ sessionId, type: 'scene_html_ready', stt: sc.stt });
             })
         );
       }
-    }
+    });
 
     progress(sessionId, 4, `✓ TTS + SRT hoàn thành cho ${total} cảnh`);
 
@@ -379,46 +485,11 @@ async function executePipeline(sessionId, { topic, chato1Keys, openaiKeys, ttsPr
     if (htmlPromises.length > 0) await Promise.all(htmlPromises);
     progress(sessionId, 5, `✓ Tất cả ${total} cảnh đã có HTML`);
 
-    // ── B5-T: Thumbnail ─────────────────────────────────────────────────────
-    const thumb = normalizeThumbnailState(state.thumbnail, state.topic, state.scenes);
-    const thumbnailHtmlPath = path.join(dir, 'html', 'thumbnail.html');
-    const thumbnailImagePath = path.join(dir, 'thumbnail', 'thumbnail.jpg');
-    state.thumbnail = thumb;
-
-    if (!thumb.htmlDone || !fs.existsSync(thumbnailHtmlPath)) {
-      progress(sessionId, 5, '⏳ AI đang tạo HTML thumbnail...');
-      const thumbnailHtml = await generateThumbnailHTML({
-        title: thumb.title,
-        prompt: thumb.prompt,
-        keys,
-        onLog: makeLogger(sessionId, 5),
-        projectAssets,
-        outputAspectRatio,
-        styleGuide,
-      });
-      fs.writeFileSync(thumbnailHtmlPath, thumbnailHtml, 'utf8');
-      thumb.htmlDone = true;
-      thumb.imageDone = false;
-      save(sessionId, state);
-      progress(sessionId, 5, '✓ HTML thumbnail xong');
-      broadcast({ sessionId, type: 'thumbnail_html_ready' });
-    }
-
-    if (!thumb.imageDone || !fs.existsSync(thumbnailImagePath)) {
-      progress(sessionId, 5, '⏳ Đang render ảnh thumbnail...');
-      await renderHtmlStill(thumbnailHtmlPath, thumbnailImagePath, makeLogger(sessionId, 5), outputAspectRatio);
-      thumb.imageDone = true;
-      save(sessionId, state);
-      progress(sessionId, 5, '✓ Thumbnail xong');
-      broadcast({ sessionId, type: 'thumbnail_image_ready' });
-    }
-
     // ── B5.5: Chờ user xem trước ──────────────────────────────────────────────
     if (!loadState(sessionId)?.renderTriggered) {
       progress(sessionId, 5, '🔍 HTML sẵn sàng — đang chờ bạn xem trước và bấm Tạo Video...', {
         subtype: 'preview_ready',
         scenes: state.scenes.map(s => ({ stt: s.stt, voice: s.voice })),
-        thumbnail: { title: state.thumbnail?.title || '' },
       });
       state.status = 'preview';
       save(sessionId, state);
@@ -428,13 +499,14 @@ async function executePipeline(sessionId, { topic, chato1Keys, openaiKeys, ttsPr
       progress(sessionId, 6, '▶ Bắt đầu render video...');
     }
 
-    // ── B6: Render (2 concurrent) ─────────────────────────────────────────────
-    progress(sessionId, 6, `⏳ Render ${total} cảnh thành video (tối đa 2 song song)...`);
+    // ── B6: Render ────────────────────────────────────────────────────────────
+    const renderConcurrency = Math.max(1, Math.min(2, Number(process.env.HYPERFRAMES_SCENE_CONCURRENCY) || 1));
+    progress(sessionId, 6, `⏳ Render ${total} cảnh thành video (tối đa ${renderConcurrency} song song)...`);
     let renderDone = state.scenes.filter(s => s.renderDone).length;
     if (renderDone > 0) makeLogger(sessionId, 6)(`${renderDone} cảnh đã render — bỏ qua`);
 
-    await runConcurrent(state.scenes, 3, async (sc) => {
-      await renderOneScene(dir, sessionId, sc, state, makeLogger(sessionId, 6), outputAspectRatio);
+    await runConcurrent(state.scenes, renderConcurrency, async (sc) => {
+      await renderOneScene(dir, sessionId, sc, state, makeLogger(sessionId, 6));
     });
     progress(sessionId, 6, `✓ Tất cả ${total} cảnh đã render xong`);
 
@@ -471,7 +543,18 @@ export async function renderSingleScene(sessionId, stt) {
   progress(sessionId, 6, `⏳ Render lại cảnh ${stt}...`);
 
   sc.renderDone = false;
-  await renderOneScene(dir, sessionId, sc, state, log, state.outputAspectRatio || '9:16');
+  const htmlPath = path.join(dir, 'html', `${sc.stt}.html`);
+  if (!sc.htmlDone || !fs.existsSync(htmlPath) || sceneHtmlNeedsTimedRefresh(htmlPath, sc, state.scenes?.length || 0)) {
+    await composeAndSaveSceneHTML({
+      dir,
+      sessionId,
+      scene: sc,
+      state,
+      log,
+      reason: 'HTML cũ chưa có timing/SFX, compose lại trước khi render',
+    });
+  }
+  await renderOneScene(dir, sessionId, sc, state, log);
 
   syncFromState(sessionId, state);
   progress(sessionId, 6, `✓ Cảnh ${stt} render xong`);
@@ -489,21 +572,13 @@ export async function regenSceneVoiceAndHTML({ sessionId, stt, newVoice, onLog }
 
   const audioPath = path.join(dir, 'audio', `${stt}.mp3`);
   const srtPath   = path.join(dir, 'srt',   `${stt}.srt`);
+  const wordsPath = path.join(dir, 'srt',   `${stt}.words.json`);
   const htmlPath  = path.join(dir, 'html',  `${stt}.html`);
 
   const keys = {
     sessionId,
-    ttsProvider:   state.ttsProvider  || 'lucylab',
-    lucylabKey:    state.lucylabKey,
-    voiceId:       state.voiceId,
-    vbeeKey:       state.vbeeKey,
-    vbeeAppId:     state.vbeeAppId,
-    vbeeVoiceCode: state.vbeeVoiceCode,
+    larvoiceVoiceId: Number(state.larvoiceVoiceId) || 1,
     ttsSpeed:      Number(state.ttsSpeed) || 1.0,
-    aiProvider:    state.aiProvider   || 'chato1',
-    chato1:        state.chato1Keys   || [],
-    geminiKeys:    state.geminiKeys   || [],
-    openaiKeys:    state.openaiKeys   || [],
   };
 
   sc.voice      = newVoice;
@@ -525,39 +600,39 @@ export async function regenSceneVoiceAndHTML({ sessionId, stt, newVoice, onLog }
   onLog?.(`Whisper cảnh ${stt}...`);
   await transcribeToSRT(audioPath, srtPath, onLog);
   let srtRaw = fs.readFileSync(srtPath, 'utf8');
-  const srtFixed = correctSRTWithVoice(srtRaw, newVoice);
-  if (srtFixed !== srtRaw) {
-    fs.writeFileSync(srtPath, srtFixed, 'utf8');
-    srtRaw = srtFixed;
+  const rawWordTimings = loadWordTimings(wordsPath);
+  const corrected = correctSubtitleArtifacts(srtRaw, newVoice, rawWordTimings);
+  if (corrected.srt !== srtRaw) {
+    fs.writeFileSync(srtPath, corrected.srt, 'utf8');
+    srtRaw = corrected.srt;
+  }
+  if (corrected.wordTimings?.length) {
+    fs.writeFileSync(wordsPath, JSON.stringify(corrected.wordTimings, null, 2), 'utf8');
   }
   sc.srt     = srtRaw;
   sc.srtDone = true;
+  const wordTimings = corrected.wordTimings?.length ? corrected.wordTimings : loadWordTimings(wordsPath);
+  if (wordTimings.length) {
+    sc.wordTimings = wordTimings;
+    onLog?.(`Whisper: đã lưu ${wordTimings.length} mốc thời gian từng từ`);
+  } else {
+    sc.wordTimings = null;
+  }
   save(sessionId, state);
 
   // Bước 3: HTML với SRT mới
   onLog?.(`Tạo HTML cảnh ${stt}...`);
-  const brandCache = await loadMediaCache(BRAND_DIR);
-  const sceneKeywords = state.assetKeywords?.brand_assets?.[String(stt)] ?? [];
-  const allMatched = searchByKeywords(sceneKeywords, brandCache, 5)
-    .map(entry => ({ ...entry, url: entryFileURL(BRAND_DIR, entry.name) }));
-  const useCharacter = Number(stt) % 3 === 1;
-  const matchedBrandAssets = useCharacter
-    ? allMatched
-    : allMatched.filter(a => !a.name.toLowerCase().includes('character'));
-  const sceneProjectAssets = state.sceneAssetsMap?.[Number(stt)] || [];
-
   const html = await generateSceneHTML({
     scene: sc,
     keys,
     onLog,
-    brandAssets:      matchedBrandAssets,
-    projectAssets:    sceneProjectAssets,
-    outputAspectRatio: state.outputAspectRatio || '9:16',
-    styleGuide:       state.styleGuide || DEFAULT_STYLE_GUIDE,
+    sceneCount:       state.scenes?.length || 0,
+    useTemplateMode:  state.useTemplateMode !== false,
   });
 
   fs.writeFileSync(htmlPath, html);
   sc.htmlDone   = true;
+  sc.htmlEdited = false;
   sc.renderDone = false;
 
   // Xóa video cũ để tránh dùng bản stale khi ghép
@@ -585,7 +660,7 @@ export async function concatFinalVideo(sessionId) {
     const log6 = makeLogger(sessionId, 6);
     for (const sc of needsRender) {
       sc.renderDone = false;
-      await renderOneScene(dir, sessionId, sc, state, log6, state.outputAspectRatio || '9:16');
+      await renderOneScene(dir, sessionId, sc, state, log6);
     }
     progress(sessionId, 6, `✓ Render xong ${needsRender.length} cảnh`);
   }
@@ -621,11 +696,27 @@ export async function concatFinalVideo(sessionId) {
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
-async function renderOneScene(dir, sessionId, sc, state, log, outputAspectRatio = '9:16') {
+async function renderOneScene(dir, sessionId, sc, state, log) {
   const audioPath   = path.join(dir, 'audio', `${sc.stt}.mp3`);
   const htmlPath    = path.join(dir, 'html',  `${sc.stt}.html`);
-  const silentVideo = path.join(dir, 'video', `${sc.stt}_silent.mp4`);
+  const renderedScene = path.join(dir, 'video', `${sc.stt}_rendered.mp4`);
+  const legacySilentVideo = path.join(dir, 'video', `${sc.stt}_silent.mp4`);
+  const voiceScene  = path.join(dir, 'video', `${sc.stt}_voice.mp4`);
   const finalScene  = path.join(dir, 'video', `${sc.stt}.mp4`);
+  const htmlStale = sceneHtmlNeedsTimedRefresh(htmlPath, sc, state.scenes?.length || 0);
+
+  if (!sc.htmlDone || !fs.existsSync(htmlPath) || htmlStale) {
+    await composeAndSaveSceneHTML({
+      dir,
+      sessionId,
+      scene: sc,
+      state,
+      log,
+      reason: htmlStale
+        ? 'HTML không khớp template/timing/SFX hiện tại, compose lại trước khi render'
+        : 'HTML thiếu, compose lại trước khi render',
+    });
+  }
 
   if (sc.renderDone && fs.existsSync(finalScene)) {
     log(`Cảnh ${sc.stt}: đã render — bỏ qua`);
@@ -636,41 +727,67 @@ async function renderOneScene(dir, sessionId, sc, state, log, outputAspectRatio 
   const duration = await getAudioDuration(audioPath);
   log(`Cảnh ${sc.stt}: audio ${duration.toFixed(1)}s`);
 
-  if (fs.existsSync(silentVideo)) fs.unlinkSync(silentVideo);
+  if (fs.existsSync(renderedScene)) fs.unlinkSync(renderedScene);
+  if (fs.existsSync(legacySilentVideo)) fs.unlinkSync(legacySilentVideo);
+  if (fs.existsSync(finalScene)) fs.unlinkSync(finalScene);
 
-  await renderSceneVideo(htmlPath, silentVideo, duration, log, outputAspectRatio);
+  await renderSceneVideo(htmlPath, renderedScene, duration, log, { voiceAudioPath: audioPath });
 
-  log(`Cảnh ${sc.stt}: merge audio...`);
-  await mergeSceneAudio(silentVideo, audioPath, finalScene);
+  if (fs.existsSync(voiceScene)) fs.unlinkSync(voiceScene);
+  if (await hasAudioStream(renderedScene)) {
+    fs.copyFileSync(renderedScene, finalScene);
+    log(`Cảnh ${sc.stt}: ✓ HyperFrames đã render voice + SFX`);
+  } else {
+    log(`Cảnh ${sc.stt}: HyperFrames chưa có audio stream, fallback merge voice + SFX...`);
+    await mergeSceneAudio(renderedScene, audioPath, finalScene, htmlPath);
+  }
+  if (fs.existsSync(voiceScene)) fs.unlinkSync(voiceScene);
 
   const mb = (fs.statSync(finalScene).size / 1024 / 1024).toFixed(1);
-  log(`Cảnh ${sc.stt}: ✓ merge xong (${mb} MB)`);
+  log(`Cảnh ${sc.stt}: ✓ scene xong (${mb} MB)`);
 
   sc.duration   = duration;
   sc.renderDone = true;
   save(sessionId, state);
 }
 
-export async function renderProjectThumbnail(sessionId) {
-  const dir = path.join(SESS_DIR, sessionId);
-  const state = loadState(sessionId);
-  if (!state) throw new Error('Session không tồn tại');
-  const thumbnailHtmlPath = path.join(dir, 'html', 'thumbnail.html');
-  const thumbnailImagePath = path.join(dir, 'thumbnail', 'thumbnail.jpg');
-  if (!fs.existsSync(thumbnailHtmlPath)) throw new Error('Thumbnail HTML chưa tồn tại');
+function syncScriptVisualAssetsToScenes(scenes = [], script = []) {
+  const byStt = new Map((Array.isArray(script) ? script : []).map(scene => [Number(scene?.stt), scene]));
+  for (const scene of Array.isArray(scenes) ? scenes : []) {
+    const planned = byStt.get(Number(scene?.stt));
+    if (!planned) continue;
+    for (const key of [
+      'imageRequired',
+      'imageCandidates',
+      'uploadedImageCandidates',
+      'htmlSpec',
+      'sfxPlan',
+      'generationMode',
+      'useTemplateMode',
+      'keywordImage',
+      'uploadedImageUrl',
+      'uploadedImageName',
+    ]) {
+      if (planned[key] !== undefined) scene[key] = planned[key];
+    }
+    for (const key of ['keyword-image', 'uploaded-image-url', 'uploaded-image-name']) {
+      if (planned[key] !== undefined) scene[key] = planned[key];
+    }
+  }
+}
 
-  state.thumbnail = normalizeThumbnailState(state.thumbnail, state.topic, state.scenes);
-  await renderHtmlStill(thumbnailHtmlPath, thumbnailImagePath, makeLogger(sessionId, 5), state.outputAspectRatio || '9:16');
-  state.thumbnail.imageDone = true;
-  state.thumbnail.htmlDone = true;
-  save(sessionId, state);
-  return thumbnailImagePath;
+async function waitForFile(filePath, timeoutMs = 60000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (fs.existsSync(filePath)) return true;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  return fs.existsSync(filePath);
 }
 
 async function buildFinalVideo(dir, sessionId, state, log) {
   const fresh             = loadState(sessionId);
   const scenes            = fresh?.scenes ?? state.scenes;
-  const outputAspectRatio = fresh?.outputAspectRatio ?? state.outputAspectRatio ?? '9:16';
   const enableSubtitles   = (fresh?.enableSubtitles ?? state.enableSubtitles) !== false;
 
   log(`XFade concat ${scenes.length} cảnh (xfade 0.5s)...`);
@@ -681,69 +798,43 @@ async function buildFinalVideo(dir, sessionId, state, log) {
   await concatScenesWithXFade(sceneFiles, durations, concatOut, 0.5);
   log(`✓ Concat xong`);
 
-  // ── Nhạc nền + sound effects ──────────────────────────────────────────────
-  const planFile = path.join(dir, 'music_plan.json');
+  // ── Nhạc nền upload ───────────────────────────────────────────────────────
   let videoForSubs = concatOut;
 
-  // Load SFX + BGM cache (chỉ scan nếu thư mục tồn tại)
-  const [sfxCache, bgmCache] = await Promise.all([
-    loadMediaCache(SFX_DIR),
-    loadMediaCache(BGM_DIR),
-  ]);
+  const uploadedMusic = fresh?.backgroundMusic ?? state.backgroundMusic ?? null;
+  const musicDir = path.join(dir, 'music');
+  const uploadedMusicFile = uploadedMusic?.filename || null;
+  const uploadedMusicPath = uploadedMusicFile ? path.join(musicDir, uploadedMusicFile) : null;
+  const hasUploadedMusic = uploadedMusicPath ? await waitForFile(uploadedMusicPath) : false;
+  const plan = {
+    background_music: hasUploadedMusic ? uploadedMusicFile : null,
+    background_volume: 0.12,
+    musicDir,
+  };
 
-  if (sfxCache.length > 0 || bgmCache.length > 0) {
-    let plan;
+  if (hasUploadedMusic) {
+    log(`Dùng nhạc nền upload: ${uploadedMusic.name || uploadedMusicFile}`);
+  } else if (uploadedMusicFile) {
+    log(`Không tìm thấy file nhạc nền upload "${uploadedMusicFile}" — bỏ qua nhạc nền`);
+  } else {
+    log(`Không có nhạc nền upload — bỏ qua nhạc nền`);
+  }
 
-    if (fs.existsSync(planFile)) {
-      plan = JSON.parse(fs.readFileSync(planFile, 'utf8'));
-      log(`Dùng kế hoạch nhạc đã có: ${plan.background_music || 'không có nhạc nền'}, ${plan.sound_effects?.length ?? 0} SFX`);
-    } else {
-      progress(sessionId, 7, `⏳ AI đang chọn nhạc nền và sound effect...`);
-      const log7 = makeLogger(sessionId, 7);
-      const keys = {
-        aiProvider: fresh?.aiProvider ?? state.aiProvider ?? 'chato1',
-        chato1: fresh?.chato1Keys ?? state.chato1Keys,
-        openaiKeys: fresh?.openaiKeys ?? state.openaiKeys,
-        geminiKeys: fresh?.geminiKeys ?? state.geminiKeys,
-        sessionId,
-      };
-
-      // Dùng keywords từ B2.5 để lọc file trước khi gửi AI
-      const assetKw   = fresh?.assetKeywords ?? state.assetKeywords ?? {};
-      const sfxKw     = assetKw.sfx_keywords  ?? [];
-      const bgmKw     = assetKw.bgm_keywords  ?? [];
-      const sfxFiles  = sfxKw.length ? searchByKeywords(sfxKw, sfxCache, 5) : sfxCache.slice(0, 20);
-      const bgmFiles  = bgmKw.length ? searchByKeywords(bgmKw, bgmCache, 5) : bgmCache.slice(0, 10);
-
-      plan = await decideMusicPlan({
-        scenes,
-        sfxFiles,
-        bgmFiles,
-        topic: fresh?.topic ?? state.topic ?? '',
-        keys,
-        onLog: log7,
-      });
-      plan.sfxDir = SFX_DIR;
-      plan.musicDir = BGM_DIR;
-      fs.writeFileSync(planFile, JSON.stringify(plan, null, 2), 'utf8');
-    }
-
-    if (plan.background_music || plan.sound_effects?.length > 0) {
-      const mixedOut = path.join(dir, 'final_nosub_music.mp4');
-      progress(sessionId, 7, `⏳ Ghép nhạc nền + ${plan.sound_effects?.length ?? 0} sound effect...`);
-      await mixMusicAndSFX(concatOut, mixedOut, plan);
-      log(`✓ Đã mix nhạc nền + sound effects`);
-      videoForSubs = mixedOut;
-    } else {
-      log(`AI không chọn nhạc nền hay SFX nào — bỏ qua`);
-    }
+  if (plan.background_music) {
+    const mixedOut = path.join(dir, 'final_nosub_music.mp4');
+    progress(sessionId, 7, `⏳ Mix nhạc nền...`);
+    await mixBackgroundMusic(concatOut, mixedOut, plan);
+    log(`✓ Đã mix nhạc nền`);
+    videoForSubs = mixedOut;
+  } else {
+    log(`Không có nhạc nền — bỏ qua mix audio`);
   }
 
   const finalOut  = path.join(dir, 'final.mp4');
   const LOGO_FILE = getSettings().logoPath;
 
   if (enableSubtitles) {
-    const assContent = buildKaraokeASS(scenes, 0.5, outputAspectRatio);
+    const assContent = buildKaraokeASS(scenes, 0.5);
     const entries    = (assContent.match(/^Dialogue:/gm) || []).length;
     log(`Burn phụ đề karaoke (${entries} entries)...`);
     progress(sessionId, 7, `⏳ Chèn ${entries} phụ đề karaoke...`);

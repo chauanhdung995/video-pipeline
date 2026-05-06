@@ -26,10 +26,23 @@ brand-specificities/*
 
 # Cache files
 **/.media-cache.json
+__pycache__/
+*.py[cod]
+
+# Generated voice sample cache
+public/voice-samples/*
+!public/voice-samples/.gitkeep
+
+# Generated HyperFrames catalog previews
+src/renderer/hyperframes/catalog/**/demo.mp4
+src/renderer/hyperframes/catalog/**/_screenshots/
+src/renderer/hyperframes/catalog/**/_prototypes/
+src/renderer/hyperframes/catalog/**/work-*/
 
 # Environment & secrets
 .env
 .env.*
+!.env.example
 *.key
 *.pem
 

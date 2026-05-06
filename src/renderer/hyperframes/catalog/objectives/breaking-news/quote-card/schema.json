@@ -1,0 +1,47 @@
+{
+  "template": "quote-card",
+  "description": "Mẫu trích dẫn lời nói của nhân vật trong tin nóng, tập trung vào câu nói và nguồn phát biểu.",
+  "templateData": {
+    "kicker": "TRÍCH DẪN",
+    "quote": "Ưu tiên hiện tại là bảo đảm an toàn cho người dân và công bố thông tin đã kiểm chứng.",
+    "speaker": "Đại diện cơ quan chức năng",
+    "role": "Phát biểu trong họp báo chiều nay",
+    "source": "Họp báo lúc 16:00",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#05070d",
+        "#101827",
+        "#dc2626",
+        "#22d3ee"
+      ],
+      "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+      "opacity": 0.16
+    },
+    "blockRefs": [
+      "x-post",
+      "reddit-post",
+      "shimmer-sweep"
+    ],
+    "appearanceOrder": [
+      "quote",
+      "speaker",
+      "source"
+    ],
+    "timingPhrases": {
+      "quote": "ưu tiên hiện tại",
+      "speaker": "đại diện cơ quan chức năng",
+      "source": "họp báo"
+    },
+    "sfx": {
+      "quote": "ưu tiên hiện tại",
+      "speaker": "đại diện cơ quan chức năng"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

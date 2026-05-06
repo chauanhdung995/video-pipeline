@@ -1,0 +1,132 @@
+{
+  "objective": "mac-dinh",
+  "template": "crypto-card-hero",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Thẻ crypto đang bước vào chi tiêu hằng ngày với mức tăng năm trăm phần trăm.",
+      "ttsVoice": "Thẻ crypto đang bước vào chi tiêu hằng ngày với mức tăng năm trăm phần trăm.",
+      "template": "crypto-card-hero",
+      "templateData": {
+        "title": "THẺ CRYPTO HẰNG NGÀY",
+        "cardLabel": "VISA CRYPTO",
+        "statMain": "+500%",
+        "statSub": "~600M USD/tháng",
+        "note": "Visa 90% on-chain",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "elements": {
+          "card": {
+            "x": 540,
+            "y": 840,
+            "timingPhrase": "thẻ crypto"
+          },
+          "wallet": {
+            "x": 540,
+            "y": 910,
+            "timingPhrase": "ví"
+          },
+          "halo": {
+            "x": 540,
+            "y": 840,
+            "timingPhrase": "Visa on-chain"
+          },
+          "icons": [
+            {
+              "label": "Cà phê",
+              "x": 265,
+              "y": 510,
+              "timingPhrase": "cà phê"
+            },
+            {
+              "label": "Siêu thị",
+              "x": 540,
+              "y": 455,
+              "timingPhrase": "siêu thị"
+            },
+            {
+              "label": "Đặt xe",
+              "x": 815,
+              "y": 510,
+              "timingPhrase": "đặt xe"
+            }
+          ]
+        },
+        "appearanceOrder": [
+          "wallet",
+          "card",
+          "icons",
+          "halo",
+          "stat"
+        ],
+        "timingPhrases": {
+          "card": "thẻ crypto",
+          "stat": "năm trăm phần trăm"
+        },
+        "sfx": {
+          "wallet": "ví",
+          "card": "thẻ crypto",
+          "halo": "Visa on-chain",
+          "stat": "năm trăm phần trăm"
+        }
+      },
+      "visual": "LAYOUT: crypto-card-hero. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: wallet → card → icons → halo → stat. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: crypto-card-hero. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: wallet → card → icons → halo → stat. TEXT OVERLAY: demo.",
+        "layout": "crypto-card-hero",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "wallet",
+          "card",
+          "icons",
+          "halo",
+          "stat."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "crypto-card-hero.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "wallet → card → icons → halo → stat.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

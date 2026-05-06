@@ -1,0 +1,86 @@
+{
+  "objective": "mac-dinh",
+  "template": "outro",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Theo dõi để xem tiếp những phân tích ngắn gọn và dễ hiểu hơn.",
+      "ttsVoice": "Theo dõi để xem tiếp những phân tích ngắn gọn và dễ hiểu hơn.",
+      "template": "outro",
+      "templateData": {
+        "ctaTop": "Theo dõi để xem tiếp",
+        "channelName": "Video Pipeline",
+        "source": "Tóm tắt nội dung chính",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "cta",
+          "channel",
+          "source"
+        ],
+        "timingPhrases": {
+          "channelName": "theo dõi"
+        },
+        "sfx": {
+          "cta": 0.12,
+          "finish": "theo dõi"
+        }
+      },
+      "visual": "LAYOUT: outro. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: cta → channel → source. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: outro. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: cta → channel → source. TEXT OVERLAY: demo.",
+        "layout": "outro",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "cta",
+          "channel",
+          "source."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "outro.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "cta → channel → source.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

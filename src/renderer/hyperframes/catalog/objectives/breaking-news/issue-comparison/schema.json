@@ -1,0 +1,67 @@
+{
+  "template": "issue-comparison",
+  "description": "Mẫu so sánh hai vấn đề trong một tin nóng: hai cột đối lập, nhãn VS và kết luận nhanh.",
+  "templateData": {
+    "kicker": "SO SÁNH NHANH",
+    "left": {
+      "label": "Thị trường",
+      "title": "Biến động tức thì",
+      "value": "Giá và thanh khoản thay đổi mạnh trong phiên chiều",
+      "status": "Đang phản ứng",
+      "color": "red",
+      "detail": "Giá và thanh khoản thay đổi mạnh trong phiên chiều",
+      "stat": "Đang phản ứng"
+    },
+    "right": {
+      "label": "Người tiêu dùng",
+      "title": "Tác động chậm hơn",
+      "value": "Chi phí sinh hoạt có thể tăng theo từng nhóm hàng",
+      "status": "Cần theo dõi",
+      "color": "cyan",
+      "winner": true,
+      "detail": "Chi phí sinh hoạt có thể tăng theo từng nhóm hàng",
+      "stat": "Cần theo dõi"
+    },
+    "verdict": "Điểm cần chú ý: tác động trực tiếp chưa đồng đều giữa các nhóm.",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#05070d",
+        "#101827",
+        "#dc2626",
+        "#22d3ee"
+      ],
+      "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+      "opacity": 0.16
+    },
+    "blockRefs": [
+      "comparison-vs",
+      "transitions-push",
+      "shimmer-sweep"
+    ],
+    "appearanceOrder": [
+      "left",
+      "vs",
+      "right",
+      "verdict"
+    ],
+    "timingPhrases": {
+      "left": "thị trường",
+      "right": "người tiêu dùng",
+      "verdict": "điểm cần chú ý"
+    },
+    "sfx": {
+      "left": "thị trường",
+      "versus": "so sánh",
+      "right": "người tiêu dùng",
+      "verdict": "điểm cần chú ý"
+    },
+    "title": "Hai vấn đề cần so sánh"
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

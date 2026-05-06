@@ -1,0 +1,46 @@
+{
+  "template": "explainer-problem-solution",
+  "description": "Explains a confusing topic by contrasting the problem with the correct mental model or solution.",
+  "templateData": {
+    "title": "Vấn đề không nằm ở tốc độ",
+    "problem": {
+      "label": "Vấn đề",
+      "title": "Nhìn vào triệu chứng",
+      "detail": "Ta thấy app chậm và nghĩ hệ thống yếu.",
+      "stat": ""
+    },
+    "solution": {
+      "label": "Cách hiểu đúng",
+      "title": "Nhìn vào hàng đợi",
+      "detail": "Điểm nghẽn là thứ tự xử lý và mức ưu tiên.",
+      "stat": ""
+    },
+    "bridge": "đổi góc nhìn",
+    "background": {
+      "type": "gradient",
+      "colors": ["#08111f", "#15243a"],
+      "accent": "#22d3ee",
+      "mint": "#34d399",
+      "opacity": 0.16
+    },
+    "blockRefs": ["flowchart", "comparison-vs", "shimmer-sweep"],
+    "appearanceOrder": ["title", "problem", "bridge", "solution"],
+    "timingPhrases": {
+      "title": "không nằm ở tốc độ",
+      "problem": "triệu chứng",
+      "bridge": "đổi góc nhìn",
+      "solution": "hàng đợi"
+    },
+    "sfx": {
+      "problem": "triệu chứng",
+      "bridge": "đổi góc nhìn",
+      "solution": "hàng đợi"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

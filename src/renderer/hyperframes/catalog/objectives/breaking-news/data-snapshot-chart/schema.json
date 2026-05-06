@@ -1,0 +1,61 @@
+{
+  "template": "data-snapshot-chart",
+  "description": "Mẫu biểu đồ số liệu cho breaking-news: chart snapshot, metric chính và ghi chú nguồn.",
+  "templateData": {
+    "kicker": "DỮ LIỆU NHANH",
+    "title": "Ba mốc cập nhật gần nhất",
+    "metric": "+72%",
+    "metricLabel": "so với đầu ngày",
+    "points": [
+      18,
+      31,
+      54,
+      66,
+      72
+    ],
+    "labels": [
+      "08:00",
+      "10:00",
+      "12:00",
+      "14:00",
+      "16:00"
+    ],
+    "source": "Nguồn: bảng cập nhật demo",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#05070d",
+        "#101827",
+        "#dc2626",
+        "#22d3ee"
+      ],
+      "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+      "opacity": 0.16
+    },
+    "blockRefs": [
+      "data-chart",
+      "nyt-graph",
+      "shimmer-sweep"
+    ],
+    "appearanceOrder": [
+      "chart",
+      "metric",
+      "source"
+    ],
+    "timingPhrases": {
+      "chart": "dữ liệu cho thấy",
+      "metric": "bảy mươi hai",
+      "source": "mốc cập nhật"
+    },
+    "sfx": {
+      "chart": "dữ liệu cho thấy",
+      "metric": "bảy mươi hai"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

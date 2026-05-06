@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catalog Studio</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">HyperFrames Catalog Studio</div>
+        <h1>Quản lý template catalog</h1>
+      </div>
+      <div class="top-actions">
+        <button id="aiGenerateBtn" class="primary" type="button">Tạo bằng AI</button>
+        <a id="guideLink" href="/guide.html" target="_blank" rel="noreferrer">Hướng dẫn</a>
+        <button id="refreshBtn" type="button">Tải lại</button>
+        <a id="rootLink" href="#" target="_blank" rel="noreferrer">Catalog root</a>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <section class="panel objectives-panel">
+        <div class="panel-head">
+          <h2>Objectives</h2>
+          <span id="objectiveCount">0</span>
+        </div>
+        <div id="objectiveList" class="list"></div>
+        <form id="createObjectiveForm" class="create-form">
+          <input id="newObjectiveName" type="text" placeholder="Tên objective mới">
+          <button type="submit">Tạo</button>
+        </form>
+      </section>
+
+      <section class="panel templates-panel grow">
+        <div class="panel-head">
+          <h2>Templates</h2>
+          <span id="templateCount">0</span>
+        </div>
+        <div id="templateList" class="list"></div>
+        <form id="createTemplateForm" class="create-form">
+          <input id="newTemplateName" type="text" placeholder="Tên template mới">
+          <button type="submit">Tạo</button>
+        </form>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <section class="editor-shell">
+        <div class="workspace-head">
+          <div>
+            <div id="selectionPath" class="selection-path">Chưa chọn template</div>
+            <div id="selectionMeta" class="selection-meta">Chọn objective và template để chỉnh sửa.</div>
+          </div>
+          <div class="button-row editor-actions">
+            <button id="saveBtn" type="button" disabled>Lưu file</button>
+            <button id="aiEditBtn" type="button" disabled>Sửa bằng AI</button>
+            <select id="renderMode" title="Render mode">
+              <option value="auto">Auto</option>
+              <option value="runtime">Runtime renderer</option>
+              <option value="folder">Folder template</option>
+            </select>
+            <input id="durationSec" type="number" min="1" max="30" step="1" value="5" title="Duration seconds">
+            <button id="renderBtn" class="primary" type="button" disabled>Render</button>
+            <button id="deleteTemplateBtn" class="danger" type="button" disabled>Xoá</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="schema">schema.json</button>
+          <button class="tab" data-tab="demo">demo.json</button>
+          <button class="tab" data-tab="template">template.html.tmpl</button>
+        </div>
+
+        <div class="editors">
+          <textarea id="schemaEditor" class="editor active" spellcheck="false"></textarea>
+          <textarea id="demoEditor" class="editor" spellcheck="false"></textarea>
+          <textarea id="templateEditor" class="editor" spellcheck="false"></textarea>
+        </div>
+      </section>
+
+      <section class="preview-shell">
+        <div class="preview-head">
+          <div>
+            <h2>Xem trước</h2>
+            <span id="previewStatus">Chưa có preview</span>
+          </div>
+          <div class="preview-actions">
+            <button id="openHtmlBtn" type="button" disabled>Mở HTML</button>
+            <button id="openMp4Btn" type="button" disabled>Mở MP4</button>
+          </div>
+        </div>
+        <div class="preview-grid">
+          <div class="preview-card">
+            <div class="preview-label">HTML 9:16</div>
+            <div id="htmlPreviewFrame" class="phone-frame">
+              <div id="htmlPreviewStage" class="scale-stage is-portrait">
+                <iframe id="htmlPreview" title="HTML preview"></iframe>
+              </div>
+            </div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-label">MP4 9:16</div>
+            <div id="mp4PreviewFrame" class="phone-frame">
+              <video id="mp4Preview" controls muted playsinline></video>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="library-shell">
+        <div class="library-card block-card">
+          <div class="library-list-wrap">
+            <div class="library-title-row">
+              <h2>Block library</h2>
+              <span id="blockCount">0 blocks</span>
+            </div>
+            <div class="library-toolbar">
+              <button id="newBlockBtn" type="button">Tạo block</button>
+              <button id="uploadBlockBtn" type="button">Tải lên</button>
+              <button id="editBlockBtn" type="button" disabled>Sửa HTML</button>
+              <button id="copyBlockHtmlBtn" type="button" disabled title="Copy toàn bộ HTML của block để dán vào prompt AI">Copy HTML</button>
+              <button id="insertBlockRefBtn" type="button" disabled>Chèn blockRef</button>
+              <button id="deleteBlockBtn" class="danger" type="button" disabled>Xoá</button>
+              <input id="blockUploadInput" type="file" accept=".html,text/html" hidden>
+            </div>
+            <div id="blockList" class="library-list"></div>
+            <div id="blockEditorPanel" class="library-editor-panel" hidden>
+              <div class="library-editor-row">
+                <input id="blockFileName" type="text" placeholder="folder/block-name.html">
+                <div class="button-row">
+                  <button id="saveBlockBtn" class="primary" type="button">Lưu block</button>
+                  <button id="cancelBlockEditBtn" type="button">Đóng</button>
+                </div>
+              </div>
+              <textarea id="blockEditor" class="library-editor" spellcheck="false"></textarea>
+            </div>
+          </div>
+          <div class="block-preview">
+            <div class="block-preview-head">
+              <span id="blockPreviewTitle">Chọn block để xem</span>
+              <a id="openBlockBtn" href="#" target="_blank" rel="noreferrer">Mở</a>
+            </div>
+            <div id="blockPreviewFrame" class="block-frame">
+              <div id="blockPreviewStage" class="scale-stage">
+                <iframe id="blockPreview" title="Block preview"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="library-card sfx-card">
+          <div class="library-title-row">
+            <h2>SFX library</h2>
+            <span id="sfxCount">0 sounds</span>
+          </div>
+          <div class="library-toolbar">
+            <button id="uploadSfxBtn" type="button">Tải SFX</button>
+            <button id="copySfxPathBtn" type="button" disabled title="Copy đường dẫn chuẩn của SFX để dán vào prompt AI">Copy path</button>
+            <button id="renameSfxBtn" type="button" disabled>Đổi tên</button>
+            <button id="deleteSfxBtn" class="danger" type="button" disabled>Xoá</button>
+            <input id="sfxUploadInput" type="file" accept="audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/ogg,.mp3,.wav,.m4a,.ogg" hidden>
+          </div>
+          <div class="sfx-preview">
+            <div id="sfxPreviewTitle">Chọn sound effect để nghe thử</div>
+            <audio id="sfxPreview" controls></audio>
+          </div>
+          <div id="sfxList" class="library-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer id="log" class="log">Sẵn sàng.</footer>
+  </div>
+
+  <dialog id="aiModal" class="ai-modal">
+    <form id="aiGenerateForm" class="ai-form" method="dialog">
+      <div class="ai-modal-head">
+        <div>
+          <div id="aiModalEyebrow" class="eyebrow">TrollLLM template generator</div>
+          <h2 id="aiModalTitle">Tạo template bằng AI</h2>
+        </div>
+        <button id="aiCloseBtn" class="modal-close" type="button">Đóng</button>
+      </div>
+
+      <div class="ai-modal-body">
+        <label class="field-label" for="aiObjective">Objective</label>
+        <input id="aiObjective" type="text" placeholder="explainer">
+
+        <label id="aiTemplateNameLabel" class="field-label" for="aiTemplateName">Tên template muốn tạo</label>
+        <input id="aiTemplateName" type="text" placeholder="vd: explainer-data-story hoặc để trống để AI tự đặt">
+
+        <label id="aiPromptLabel" class="field-label" for="aiPrompt">Mô tả template</label>
+        <textarea id="aiPrompt" rows="9" placeholder="Ví dụ: Tạo một template explainer 9:16 để giải thích một khái niệm khó bằng 3 bước trực quan. Phong cách tối, hiện đại, có card nổi, đường nối giữa các bước, animation nhẹ liên tục ở nền. Có tiêu đề lớn, subtitle, 3 step card và một takeaway cuối."></textarea>
+
+        <label class="check-row">
+          <input id="aiRenderMp4" type="checkbox">
+          <span id="aiRenderMp4Label">Render MP4 ngay sau khi tạo (chậm hơn, nhưng có preview video ngay)</span>
+        </label>
+
+        <div id="aiStatus" class="ai-status">Sử dụng TrollLLM key/model đang cấu hình cho app chính.</div>
+      </div>
+
+      <div class="ai-modal-footer">
+        <button id="aiSubmitBtn" class="primary" type="submit">Tạo template</button>
+        <button id="aiCancelBtn" type="button">Huỷ</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

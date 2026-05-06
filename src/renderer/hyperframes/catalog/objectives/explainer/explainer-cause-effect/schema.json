@@ -1,0 +1,49 @@
+{
+  "template": "explainer-cause-effect",
+  "description": "Causal explainer layout that maps reasons on the left to outcomes on the right.",
+  "templateData": {
+    "title": "Nhỏ ở đầu vào, lớn ở đầu ra",
+    "causes": [
+      { "label": "1", "text": "Nhu cầu tăng" },
+      { "label": "2", "text": "Nguồn lực có hạn" },
+      { "label": "3", "text": "Ưu tiên theo phí" }
+    ],
+    "effects": [
+      { "label": "A", "text": "Hàng đợi dài hơn" },
+      { "label": "B", "text": "Chi phí tăng" },
+      { "label": "C", "text": "Trải nghiệm chậm lại" }
+    ],
+    "insight": "Một thay đổi nhỏ ở quy tắc ưu tiên có thể tạo ra cảm giác rất lớn cho người dùng.",
+    "background": {
+      "type": "gradient",
+      "colors": ["#08111f", "#15243a"],
+      "accent": "#22d3ee",
+      "mint": "#34d399",
+      "opacity": 0.16
+    },
+    "blockRefs": ["flowchart", "ripple-waves", "shimmer-sweep"],
+    "appearanceOrder": ["title", "cause1", "cause2", "cause3", "arrow", "effect1", "effect2", "effect3", "insight"],
+    "timingPhrases": {
+      "title": "đầu vào",
+      "cause1": "nhu cầu tăng",
+      "cause2": "nguồn lực có hạn",
+      "cause3": "ưu tiên theo phí",
+      "effect1": "hàng đợi dài hơn",
+      "effect2": "chi phí tăng",
+      "effect3": "trải nghiệm chậm lại",
+      "insight": "quy tắc ưu tiên"
+    },
+    "sfx": {
+      "cause": "nhu cầu tăng",
+      "arrow": "ưu tiên theo phí",
+      "effect": "hàng đợi dài hơn",
+      "insight": "quy tắc ưu tiên"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

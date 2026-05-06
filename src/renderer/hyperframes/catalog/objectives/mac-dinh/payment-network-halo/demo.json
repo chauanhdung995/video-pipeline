@@ -1,0 +1,126 @@
+{
+  "objective": "mac-dinh",
+  "template": "payment-network-halo",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Mạng thanh toán bao quanh giao dịch và kết nối người dùng với merchant.",
+      "ttsVoice": "Mạng thanh toán bao quanh giao dịch và kết nối người dùng với merchant.",
+      "template": "payment-network-halo",
+      "templateData": {
+        "title": "Mạng thanh toán",
+        "cardLabel": "PAYMENT",
+        "statMain": "24/7",
+        "statSub": "kết nối tức thì",
+        "note": "Mạng lưới bao quanh giao dịch",
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "elements": {
+          "card": {
+            "x": 540,
+            "y": 840,
+            "timingPhrase": "giao dịch"
+          },
+          "wallet": {
+            "x": 540,
+            "y": 910,
+            "timingPhrase": "ví"
+          },
+          "halo": {
+            "x": 540,
+            "y": 840,
+            "timingPhrase": "mạng lưới"
+          },
+          "icons": [
+            {
+              "label": "Node",
+              "x": 265,
+              "y": 510
+            },
+            {
+              "label": "User",
+              "x": 540,
+              "y": 455
+            },
+            {
+              "label": "Merchant",
+              "x": 815,
+              "y": 510
+            }
+          ]
+        },
+        "appearanceOrder": [
+          "card",
+          "halo",
+          "icons",
+          "stat"
+        ],
+        "timingPhrases": {
+          "halo": "mạng lưới"
+        },
+        "sfx": {
+          "card": "giao dịch",
+          "halo": "mạng lưới",
+          "nodes": "merchant",
+          "stat": 1.4
+        }
+      },
+      "visual": "LAYOUT: payment-network-halo. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: card → halo → icons → stat. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: payment-network-halo. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: card → halo → icons → stat. TEXT OVERLAY: demo.",
+        "layout": "payment-network-halo",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "card",
+          "halo",
+          "icons",
+          "stat."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "payment-network-halo.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "card → halo → icons → stat.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

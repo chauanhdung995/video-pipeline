@@ -1,0 +1,59 @@
+{
+  "objective": "explainer",
+  "template": "explainer-image-timeline",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Từ tín hiệu đến kết quả: đầu tiên tín hiệu xuất hiện, sau đó hệ thống phản ứng, rồi người dùng cảm nhận kết quả. Timeline phù hợp khi hình ảnh cần đi kèm thứ tự diễn giải.",
+      "ttsVoice": "Từ tín hiệu đến kết quả: đầu tiên tín hiệu xuất hiện, sau đó hệ thống phản ứng, rồi người dùng cảm nhận kết quả. Timeline phù hợp khi hình ảnh cần đi kèm thứ tự diễn giải.",
+      "template": "explainer-image-timeline",
+      "templateData": {
+        "kicker": "DIỄN TIẾN",
+        "title": "Từ tín hiệu đến kết quả",
+        "imageSearch": {
+          "q": "\"technology process\" editorial background timeline -logo -icon",
+          "intent": "Find a background image that sets the scene while a short explainer timeline overlays it.",
+          "orientation": "portrait",
+          "prefer": ["editorial", "timeline context", "photo"],
+          "avoid": ["logo", "icon", "clipart"]
+        },
+        "image": {
+          "title": "Explainer demo image",
+          "src": "file:///Users/ngokhanh/Downloads/video-pipeline-main%202/src/renderer/hyperframes/catalog/objectives/explainer/_prototypes/explainer-image-demo-photo.png",
+          "width": 1024,
+          "height": 1792,
+          "alt": "Abstract educational technology scene"
+        },
+        "events": [
+          { "time": "01", "title": "Tín hiệu xuất hiện", "detail": "" },
+          { "time": "02", "title": "Hệ thống phản ứng", "detail": "" },
+          { "time": "03", "title": "Người dùng cảm nhận kết quả", "detail": "" }
+        ],
+        "caption": "Timeline phù hợp khi hình ảnh cần đi kèm thứ tự diễn giải.",
+        "overlay": { "opacity": 0.58 },
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["flowchart", "image-background-hero", "grid-pixelate-wipe"],
+        "appearanceOrder": ["image", "title", "event1", "event2", "event3", "caption"],
+        "timingPhrases": {
+          "title": "tín hiệu đến kết quả",
+          "event1": "tín hiệu xuất hiện",
+          "event2": "hệ thống phản ứng",
+          "event3": "người dùng cảm nhận",
+          "caption": "thứ tự diễn giải"
+        },
+        "sfx": {
+          "image": 0.08,
+          "event1": "tín hiệu xuất hiện",
+          "event3": "người dùng cảm nhận"
+        }
+      },
+      "visual": "LAYOUT: explainer image timeline. BACKGROUND: full-screen image with scrim. MAIN ELEMENTS: image, title, timeline events, caption. APPEARANCE ORDER: image -> title -> events -> caption. TEXT OVERLAY: \"Từ tín hiệu đến kết quả\"."
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "template": "payment-network-halo",
+  "description": "Payment network halo/orbit around a central object.",
+  "templateData": {
+    "title": "Mạng thanh toán",
+    "cardLabel": "PAYMENT",
+    "statMain": "24/7",
+    "statSub": "kết nối tức thì",
+    "note": "Mạng lưới bao quanh giao dịch",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "elements": {
+      "card": {
+        "x": 540,
+        "y": 840,
+        "timingPhrase": "giao dịch"
+      },
+      "wallet": {
+        "x": 540,
+        "y": 910,
+        "timingPhrase": "ví"
+      },
+      "halo": {
+        "x": 540,
+        "y": 840,
+        "timingPhrase": "mạng lưới"
+      },
+      "icons": [
+        {
+          "label": "Node",
+          "x": 265,
+          "y": 510
+        },
+        {
+          "label": "User",
+          "x": 540,
+          "y": 455
+        },
+        {
+          "label": "Merchant",
+          "x": 815,
+          "y": 510
+        }
+      ]
+    },
+    "appearanceOrder": [
+      "card",
+      "halo",
+      "icons",
+      "stat"
+    ],
+    "timingPhrases": {
+      "halo": "mạng lưới"
+    },
+    "sfx": {
+      "card": "giao dịch",
+      "halo": "mạng lưới",
+      "nodes": "merchant",
+      "stat": 1.4
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

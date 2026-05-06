@@ -1,0 +1,47 @@
+{
+  "objective": "explainer",
+  "template": "explainer-myth-fact",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Hiểu lầm phổ biến là: phí cao nghĩa là mạng hỏng. Sự thật là phí cao nghĩa là nhu cầu đang chen hàng. Người dùng trả nhiều hơn để được xử lý trước. Đừng nhìn một con số đơn lẻ; hãy nhìn cơ chế tạo ra nó.",
+      "ttsVoice": "Hiểu lầm phổ biến là: phí cao nghĩa là mạng hỏng. Sự thật là phí cao nghĩa là nhu cầu đang chen hàng. Người dùng trả nhiều hơn để được xử lý trước. Đừng nhìn một con số đơn lẻ; hãy nhìn cơ chế tạo ra nó.",
+      "template": "explainer-myth-fact",
+      "templateData": {
+        "title": "Hiểu lầm phổ biến",
+        "myth": {
+          "label": "Hiểu lầm",
+          "title": "Phí cao nghĩa là mạng hỏng",
+          "detail": "Cách nói này bỏ qua cơ chế ưu tiên."
+        },
+        "fact": {
+          "label": "Sự thật",
+          "title": "Phí cao nghĩa là nhu cầu đang chen hàng",
+          "detail": "Người dùng trả nhiều hơn để được xử lý trước."
+        },
+        "takeaway": "Đừng nhìn một con số đơn lẻ; hãy nhìn cơ chế tạo ra nó.",
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["flash-through-white", "shimmer-sweep", "macos-notification"],
+        "appearanceOrder": ["title", "myth", "fact", "takeaway"],
+        "timingPhrases": {
+          "title": "hiểu lầm",
+          "myth": "mạng hỏng",
+          "fact": "chen hàng",
+          "takeaway": "cơ chế tạo ra"
+        },
+        "sfx": {
+          "myth": "mạng hỏng",
+          "fact": "chen hàng",
+          "takeaway": "cơ chế tạo ra"
+        }
+      },
+      "visual": "LAYOUT: explainer myth fact. BACKGROUND: ink navy with coral myth and mint fact. MAIN ELEMENTS: title, myth card, fact card, takeaway. APPEARANCE ORDER: title -> myth -> fact -> takeaway. TEXT OVERLAY: \"Hiểu lầm\"; \"Sự thật\"."
+    }
+  ]
+}

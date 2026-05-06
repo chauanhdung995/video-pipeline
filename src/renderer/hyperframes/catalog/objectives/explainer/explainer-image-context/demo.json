@@ -1,0 +1,54 @@
+{
+  "objective": "explainer",
+  "template": "explainer-image-context",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Nhìn vào bức tranh lớn. Ảnh nền đặt người xem vào đúng tình huống trước khi đi vào cơ chế. Dùng cảnh này khi hình ảnh là bằng chứng hoặc bối cảnh chính của lời giải thích.",
+      "ttsVoice": "Nhìn vào bức tranh lớn. Ảnh nền đặt người xem vào đúng tình huống trước khi đi vào cơ chế. Dùng cảnh này khi hình ảnh là bằng chứng hoặc bối cảnh chính của lời giải thích.",
+      "template": "explainer-image-context",
+      "templateData": {
+        "kicker": "BỐI CẢNH",
+        "title": "Nhìn vào bức tranh lớn",
+        "subtitle": "Ảnh nền đặt người xem vào đúng tình huống trước khi đi vào cơ chế.",
+        "caption": "Dùng khi hình ảnh là bằng chứng hoặc bối cảnh chính của cảnh.",
+        "imageSearch": {
+          "q": "\"modern technology dashboard\" editorial photo diagram -logo -icon",
+          "intent": "Find a crop-safe portrait editorial image or diagram that can work as a full-screen explainer background.",
+          "orientation": "portrait",
+          "prefer": ["editorial", "diagram", "context"],
+          "avoid": ["logo", "icon", "clipart", "stock"]
+        },
+        "image": {
+          "title": "Explainer demo image",
+          "src": "file:///Users/ngokhanh/Downloads/video-pipeline-main%202/src/renderer/hyperframes/catalog/objectives/explainer/_prototypes/explainer-image-demo-photo.png",
+          "width": 1024,
+          "height": 1792,
+          "alt": "Abstract educational technology scene"
+        },
+        "overlay": { "opacity": 0.62 },
+        "background": {
+          "type": "gradient",
+          "colors": ["#08111f", "#15243a"],
+          "accent": "#22d3ee",
+          "mint": "#34d399",
+          "opacity": 0.16
+        },
+        "blockRefs": ["image-background-hero", "shimmer-sweep", "light-leak"],
+        "appearanceOrder": ["image", "title", "subtitle", "caption"],
+        "timingPhrases": {
+          "image": "bức tranh lớn",
+          "title": "bức tranh lớn",
+          "subtitle": "đúng tình huống",
+          "caption": "bối cảnh chính"
+        },
+        "sfx": {
+          "image": 0.08,
+          "title": "bức tranh lớn",
+          "caption": "bối cảnh chính"
+        }
+      },
+      "visual": "LAYOUT: explainer image context. BACKGROUND: full-screen image with navy scrim. MAIN ELEMENTS: image, kicker, title, subtitle, caption. APPEARANCE ORDER: image -> title -> subtitle -> caption. TEXT OVERLAY: \"Nhìn vào bức tranh lớn\"."
+    }
+  ]
+}

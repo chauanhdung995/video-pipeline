@@ -1,0 +1,93 @@
+{
+  "objective": "mac-dinh",
+  "template": "comparison",
+  "scenes": [
+    {
+      "stt": 1,
+      "voice": "Một bên là cách cũ chậm và rối, bên kia là cách mới rõ ràng hơn.",
+      "ttsVoice": "Một bên là cách cũ chậm và rối, bên kia là cách mới rõ ràng hơn.",
+      "template": "comparison",
+      "templateData": {
+        "left": {
+          "label": "Bên A",
+          "value": "điểm yếu",
+          "color": "cyan"
+        },
+        "right": {
+          "label": "Bên B",
+          "value": "điểm mạnh",
+          "color": "purple",
+          "winner": true
+        },
+        "background": {
+          "type": "gradient",
+          "colors": [
+            "#111827",
+            "#2563eb"
+          ],
+          "pattern": "subtle data grid",
+          "opacity": 0.18
+        },
+        "appearanceOrder": [
+          "left",
+          "right"
+        ],
+        "timingPhrases": {
+          "left": "bên A",
+          "right": "bên B"
+        },
+        "sfx": {
+          "left": "bên A",
+          "right": "bên B"
+        }
+      },
+      "visual": "LAYOUT: comparison. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: left → right. TEXT OVERLAY: demo.",
+      "visualSpec": {
+        "raw": "LAYOUT: comparison. BACKGROUND: demo. MAIN ELEMENTS: demo templateData. APPEARANCE ORDER: left → right. TEXT OVERLAY: demo.",
+        "layout": "comparison",
+        "background": {
+          "raw": "demo.",
+          "direction": "vertical",
+          "colors": [],
+          "pattern": "",
+          "opacity": 0.18
+        },
+        "elements": [
+          {
+            "id": "element-1",
+            "index": 1,
+            "raw": "demo templateData.",
+            "label": "demo templateData",
+            "kind": "object",
+            "x": null,
+            "y": null,
+            "color": "",
+            "timingPhrase": "demo templateData."
+          }
+        ],
+        "appearanceOrder": [
+          "left",
+          "right."
+        ],
+        "textOverlay": [
+          {
+            "id": "text-1-1",
+            "raw": "demo.",
+            "text": "demo.",
+            "x": null,
+            "y": null,
+            "color": "",
+            "role": "title"
+          }
+        ],
+        "sections": {
+          "LAYOUT": "comparison.",
+          "BACKGROUND": "demo.",
+          "MAIN ELEMENTS": "demo templateData.",
+          "APPEARANCE ORDER": "left → right.",
+          "TEXT OVERLAY": "demo."
+        }
+      }
+    }
+  ]
+}

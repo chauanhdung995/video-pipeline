@@ -1,0 +1,37 @@
+{
+  "template": "stat-hero",
+  "description": "Large central metric with label and context.",
+  "templateData": {
+    "value": "90%",
+    "label": "thị phần",
+    "context": "một câu ngắn giải thích số liệu",
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#111827",
+        "#2563eb"
+      ],
+      "pattern": "subtle data grid",
+      "opacity": 0.18
+    },
+    "appearanceOrder": [
+      "value",
+      "label",
+      "context"
+    ],
+    "timingPhrases": {
+      "value": "chín mươi phần trăm",
+      "label": "thị phần"
+    },
+    "sfx": {
+      "value": "chín mươi phần trăm",
+      "context": "xu hướng"
+    }
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}

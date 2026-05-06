@@ -1,0 +1,81 @@
+{
+  "template": "location-context",
+  "description": "Mẫu bối cảnh địa điểm: khung bản đồ/ảnh địa điểm, nhãn vị trí và các dữ kiện liên quan.",
+  "templateData": {
+    "kicker": "BỐI CẢNH ĐỊA ĐIỂM",
+    "location": "Trung tâm Hà Nội",
+    "region": "Quận Hoàn Kiếm, Hà Nội",
+    "caption": "Tâm điểm theo dõi là cụm tuyến phố quanh khu vực trung tâm.",
+    "facts": [
+      "Nhiều tuyến giao thông giao cắt trong bán kính 2 km",
+      "Mật độ người qua lại cao vào giờ tan tầm",
+      "Phân luồng có thể thay đổi theo từng giờ"
+    ],
+    "imageSearch": {
+      "q": "Hanoi Hoan Kiem central district map street news context",
+      "intent": "Ảnh bản đồ hoặc bối cảnh đô thị thể hiện rõ vị trí tin nóng.",
+      "orientation": "portrait",
+      "prefer": [
+        "map",
+        "city",
+        "street",
+        "landmark"
+      ],
+      "avoid": [
+        "logo",
+        "icon",
+        "cartoon",
+        "unreadable text"
+      ]
+    },
+    "image": {
+      "title": "Khung bối cảnh địa điểm minh họa",
+      "src": "",
+      "width": 0,
+      "height": 0,
+      "alt": "Bản đồ bối cảnh địa điểm minh họa"
+    },
+    "background": {
+      "type": "gradient",
+      "colors": [
+        "#05070d",
+        "#101827",
+        "#dc2626",
+        "#22d3ee"
+      ],
+      "pattern": "clean breaking-news newsroom bands, low-contrast grid, red alert accents",
+      "opacity": 0.16
+    },
+    "blockRefs": [
+      "north-korea-locked-down",
+      "nyc-paris-flight",
+      "image-inset-card"
+    ],
+    "appearanceOrder": [
+      "map",
+      "location",
+      "fact1",
+      "fact2",
+      "fact3"
+    ],
+    "timingPhrases": {
+      "map": "bối cảnh chính",
+      "location": "khu vực trung tâm",
+      "fact1": "giao thông",
+      "fact2": "đông người",
+      "fact3": "từng giờ"
+    },
+    "sfx": {
+      "map": "bối cảnh chính",
+      "location": "khu vực trung tâm",
+      "fact": "giao thông"
+    },
+    "title": "Vị trí cần chú ý"
+  },
+  "files": {
+    "template": "template.html.tmpl",
+    "demoJson": "demo.json",
+    "demoHtml": "demo.html",
+    "demoMp4": "demo.mp4"
+  }
+}
